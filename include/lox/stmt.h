@@ -10,6 +10,7 @@ typedef enum {
         STMT_IF,
         STMT_PRINT,
         STMT_VAR,
+        STMT_WHILE,
 } StmtType;
 
 typedef struct {
@@ -40,10 +41,16 @@ typedef struct {
         const Expr *initializer;
 } VarStmt;
 
+typedef struct {
+        const Expr *condition;
+        const Stmt *body;
+} WhileStmt;
+
 Stmt *block_stmt_create(const PtrVector *statements);
 Stmt *expression_stmt_create(const Expr *expression);
 Stmt *if_stmt_create(const Expr *condition, const Stmt *then_branch, const Stmt *else_branch);
 Stmt *print_stmt_create(const Expr *expression);
 Stmt *var_stmt_create(const Token *name, const Expr *initializer);
+Stmt *while_stmt_create(const Expr *condition, const Stmt *body);
 
 #endif

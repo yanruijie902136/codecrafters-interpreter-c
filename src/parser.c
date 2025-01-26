@@ -90,10 +90,11 @@ static Expr *parse_primary(void);
 static Stmt *parse_declaration(void);
 static Stmt *parse_var_declaration(void);
 static Stmt *parse_statement(void);
-static Stmt *parse_if_statement(void);
-static Stmt *parse_expression_statement(void);
 static PtrVector *parse_block(void);
+static Stmt *parse_expression_statement(void);
+static Stmt *parse_if_statement(void);
 static Stmt *parse_print_statement(void);
+static Stmt *parse_while_statement(void);
 
 static Expr *
 parse_expression(void)
@@ -272,9 +273,33 @@ parse_statement(void)
                 return parse_if_statement();
         if (match(TOKEN_PRINT))
                 return parse_print_statement();
+        if (match(TOKEN_WHILE))
+                return parse_while_statement();
         if (match(TOKEN_LEFT_BRACE))
                 return block_stmt_create(parse_block());
         return parse_expression_statement();
+}
+
+static PtrVector *
+parse_block(void)
+{
+        PtrVector *statements = ptr_vector_create();
+        while (peek()->type != TOKEN_RIGHT_BRACE && !is_at_end())
+                ptr_vector_append(statements, parse_declaration());
+
+        if (!match(TOKEN_RIGHT_BRACE))
+                error(peek(), "Expect '}' after block.");
+
+        return statements;
+}
+
+static Stmt *
+parse_expression_statement(void)
+{
+        Expr *expression = parse_expression();
+        if (!match(TOKEN_SEMICOLON))
+                error(peek(), "Expect ';' after expression.");
+        return expression_stmt_create(expression);
 }
 
 static Stmt *
@@ -297,34 +322,27 @@ parse_if_statement(void)
 }
 
 static Stmt *
-parse_expression_statement(void)
-{
-        Expr *expression = parse_expression();
-        if (!match(TOKEN_SEMICOLON))
-                error(peek(), "Expect ';' after expression.");
-        return expression_stmt_create(expression);
-}
-
-static PtrVector *
-parse_block(void)
-{
-        PtrVector *statements = ptr_vector_create();
-        while (peek()->type != TOKEN_RIGHT_BRACE && !is_at_end())
-                ptr_vector_append(statements, parse_declaration());
-
-        if (!match(TOKEN_RIGHT_BRACE))
-                error(peek(), "Expect '}' after block.");
-
-        return statements;
-}
-
-static Stmt *
 parse_print_statement(void)
 {
         Expr *expression = parse_expression();
         if (!match(TOKEN_SEMICOLON))
                 error(peek(), "Expect ';' after value.");
         return print_stmt_create(expression);
+}
+
+static Stmt *
+parse_while_statement(void)
+{
+        if (!match(TOKEN_LEFT_PAREN))
+                error(peek(), "Expect '(' after 'while'.");
+
+        Expr *condition = parse_expression();
+
+        if (!match(TOKEN_RIGHT_PAREN))
+                error(peek(), "Expect ')' after condition.");
+
+        Stmt *body = parse_statement();
+        return while_stmt_create(condition, body);
 }
 
 Expr *

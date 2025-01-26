@@ -53,3 +53,12 @@ var_stmt_create(const Token *name, const Expr *initializer)
         var_stmt->initializer = initializer;
         return stmt_create(STMT_VAR, var_stmt);
 }
+
+Stmt *
+while_stmt_create(const Expr *condition, const Stmt *body)
+{
+        WhileStmt *while_stmt = xmalloc(sizeof(WhileStmt));
+        while_stmt->condition = condition;
+        while_stmt->body = body;
+        return stmt_create(STMT_WHILE, while_stmt);
+}

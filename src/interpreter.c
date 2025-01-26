@@ -340,6 +340,22 @@ execute_var_stmt(const VarStmt *var_stmt)
 }
 
 static void
+execute_while_stmt(const WhileStmt *while_stmt)
+{
+        for ( ; ; )
+        {
+                Object *object = evaluate_expr(while_stmt->condition);
+                bool boolean = is_truthy(object);
+                object_destroy(object);
+
+                if (!boolean)
+                        return;
+
+                execute_stmt(while_stmt->body);
+        }
+}
+
+static void
 execute_stmt(const Stmt *stmt)
 {
         switch (stmt->type)
@@ -358,6 +374,9 @@ execute_stmt(const Stmt *stmt)
                 break;
         case STMT_VAR:
                 execute_var_stmt(stmt->data);
+                break;
+        case STMT_WHILE:
+                execute_while_stmt(stmt->data);
                 break;
         }
 }
