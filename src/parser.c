@@ -2,6 +2,7 @@
 #include "lox/expr.h"
 #include "lox/object.h"
 #include "lox/ptr_vector.h"
+#include "lox/stmt.h"
 #include "lox/token.h"
 
 #include <setjmp.h>
@@ -82,6 +83,9 @@ static Expr *parse_term(void);
 static Expr *parse_factor(void);
 static Expr *parse_unary(void);
 static Expr *parse_primary(void);
+
+static Stmt *parse_statement(void);
+static Stmt *parse_print_statement(void);
 
 static Expr *
 parse_expression(void)
@@ -176,11 +180,43 @@ parse_primary(void)
         error(peek(), "Expect expression.");
 }
 
+static Stmt *
+parse_statement(void)
+{
+        if (match(TOKEN_PRINT))
+                return parse_print_statement();
+        return NULL;
+}
+
+static Stmt *
+parse_print_statement(void)
+{
+        Expr *expression = parse_expression();
+        if (!match(TOKEN_SEMICOLON))
+                error(peek(), "Expect ';' after value.");
+        return print_stmt_create(expression);
+}
+
 Expr *
 parse_to_expr(const PtrVector *tokens)
 {
         init(tokens);
-        if (setjmp(parser.env) == 0)
-                return parse_expression();
-        return NULL;
+
+        if (setjmp(parser.env) != 0)
+                return NULL;
+        return parse_expression();
+}
+
+PtrVector *
+parse_to_stmts(const PtrVector *tokens)
+{
+        init(tokens);
+
+        if (setjmp(parser.env) != 0)
+                return NULL;
+
+        PtrVector *statements = ptr_vector_create();
+        while (!is_at_end())
+                ptr_vector_append(statements, parse_statement());
+        return statements;
 }

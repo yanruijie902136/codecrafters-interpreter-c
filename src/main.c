@@ -55,7 +55,7 @@ tokenize(const char *source, bool print_tokens)
 }
 
 static Expr *
-parse(const PtrVector *tokens, bool print_expr)
+parse_expr(const PtrVector *tokens, bool print_expr)
 {
         Expr *expr = parse_to_expr(tokens);
         if (expr == NULL)
@@ -67,6 +67,15 @@ parse(const PtrVector *tokens, bool print_expr)
         return expr;
 }
 
+static PtrVector *
+parse_stmts(const PtrVector *tokens)
+{
+        PtrVector *stmts = parse_to_stmts(tokens);
+        if (stmts == NULL)
+                exit(EX_DATAERR);
+        return stmts;
+}
+
 static void
 evaluate(const Expr *expr)
 {
@@ -75,6 +84,13 @@ evaluate(const Expr *expr)
                 exit(EX_SOFTWARE);
 
         printf("%s\n", object_stringify(object, true));
+}
+
+static void
+run(const PtrVector *stmts)
+{
+        if (interpret_stmts(stmts) < 0)
+                exit(EX_SOFTWARE);
 }
 
 int
@@ -92,9 +108,11 @@ main(int argc, char *argv[])
         if (strcmp(command, "tokenize") == 0)
                 tokenize(source, true);
         else if (strcmp(command, "parse") == 0)
-                parse(tokenize(source, false), true);
+                parse_expr(tokenize(source, false), true);
         else if (strcmp(command, "evaluate") == 0)
-                evaluate(parse(tokenize(source, false), false));
+                evaluate(parse_expr(tokenize(source, false), false));
+        else if (strcmp(command, "run") == 0)
+                run(parse_stmts(tokenize(source, false)));
         else
                 errx(EX_USAGE, "unknown command: %s", command);
 

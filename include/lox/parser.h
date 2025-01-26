@@ -5,5 +5,6 @@
 #include "lox/ptr_vector.h"
 
 Expr *parse_to_expr(const PtrVector *tokens);
+PtrVector *parse_to_stmts(const PtrVector *tokens);
 
 #endif

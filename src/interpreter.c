@@ -1,6 +1,8 @@
 #include "lox/interpreter.h"
 #include "lox/expr.h"
 #include "lox/object.h"
+#include "lox/ptr_vector.h"
+#include "lox/stmt.h"
 #include "lox/token.h"
 #include "lox/xmalloc.h"
 
@@ -196,7 +198,44 @@ evaluate_expr(const Expr *expr)
 Object *
 interpret_expr(const Expr *expr)
 {
-        if (setjmp(interpreter.env) == 0)
-                return evaluate_expr(expr);
-        return NULL;
+        if (setjmp(interpreter.env) != 0)
+                return NULL;
+        return evaluate_expr(expr);
+}
+
+static void execute_stmt(const Stmt *stmt);
+
+static void
+execute_print_stmt(const PrintStmt *print_stmt)
+{
+        Object *object = evaluate_expr(print_stmt->expression);
+        printf("%s\n", object_stringify(object, true));
+        object_destroy(object);
+}
+
+static void
+execute_stmt(const Stmt *stmt)
+{
+        switch (stmt->type)
+        {
+        case STMT_PRINT:
+                execute_print_stmt(stmt->data);
+                break;
+        }
+}
+
+int
+interpret_stmts(const PtrVector *stmts)
+{
+        if (setjmp(interpreter.env) != 0)
+                return -1;
+
+        size_t num_stmts = ptr_vector_size(stmts);
+        for (size_t i = 0; i < num_stmts; i++)
+        {
+                Stmt *stmt = ptr_vector_at(stmts, i);
+                execute_stmt(stmt);
+        }
+
+        return 0;
 }
