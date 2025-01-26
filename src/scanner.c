@@ -117,6 +117,18 @@ static void scanNumber(void) {
         addTokenFull(TOKEN_NUMBER, lexeme, literal);
 }
 
+static bool isAlphaNumeric(char c) {
+        return c == '_' || isalnum(c);
+}
+
+static void scanIdentifier(void) {
+        while (isAlphaNumeric(peek())) {
+                advance();
+        }
+
+        addToken(TOKEN_IDENTIFIER);
+}
+
 static void scanToken(void) {
         char c = advance();
         switch (c) {
@@ -183,6 +195,10 @@ static void scanToken(void) {
                 }
                 else if (isdigit(c)) {
                         scanNumber();
+                        break;
+                }
+                else if (isAlphaNumeric(c)) {
+                        scanIdentifier();
                         break;
                 }
                 error("Unexpected character: %c", c);
