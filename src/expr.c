@@ -68,7 +68,7 @@ static void stringifyGroupingExpr(const GroupingExpr *groupingExpr) {
 }
 
 static void stringifyLiteralExpr(const LiteralExpr *literalExpr) {
-        appendString("%s", objectToString(literalExpr->value));
+        appendString("%s", objectToString(literalExpr->value, false));
 }
 
 static void stringifyUnaryExpr(const UnaryExpr *unaryExpr) {

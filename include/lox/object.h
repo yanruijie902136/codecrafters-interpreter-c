@@ -17,6 +17,6 @@ Object *createBoolObject(bool boolean);
 Object *createNilObject(void);
 Object *createNumberObject(double num);
 Object *createStringObject(const char *str);
-const char *objectToString(const Object *object);
+const char *objectToString(const Object *object, bool minPrecision);
 
 #endif

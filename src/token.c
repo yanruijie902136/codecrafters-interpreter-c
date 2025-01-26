@@ -98,7 +98,9 @@ static const char *tokenTypeToString(TokenType type) {
 
 const char *tokenToString(const Token *token) {
         const char *typeStr = tokenTypeToString(token->type);
-        const char *literalStr = token->literal == NULL ? "null" : objectToString(token->literal);
+        const char *literalStr = (
+                token->literal == NULL ? "null" : objectToString(token->literal, false)
+        );
 
         static char str[1024];
         snprintf(str, sizeof(str), "%s %s %s", typeStr, token->lexeme, literalStr);

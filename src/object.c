@@ -27,13 +27,15 @@ Object *createStringObject(const char *str) {
         return createObject(OBJECT_STRING, str);
 }
 
-static const char *numberToString(double num) {
+static const char *numberToString(double num, bool minPrecision) {
         static char str[1024];
         snprintf(str, sizeof(str), "%lf", num);
 
         char *dotptr = strchr(str, '.');
         if (dotptr == NULL) {
-                strncat(str, ".0", 3);
+                if (!minPrecision) {
+                        strncat(str, ".0", 3);
+                }
                 return str;
         }
 
@@ -41,18 +43,22 @@ static const char *numberToString(double num) {
         while (ptr > dotptr + 1 && *ptr == '0') {
                 ptr--;
         }
+        if (minPrecision && ptr == dotptr + 1 && *ptr == '0') {
+                *dotptr = '\0';
+                return str;
+        }
         *(++ptr) = '\0';
         return str;
 }
 
-const char *objectToString(const Object *object) {
+const char *objectToString(const Object *object, bool minPrecision) {
         switch (object->type) {
         case OBJECT_BOOL:
                 return *(const bool *)object->data ? "true" : "false";
         case OBJECT_NIL:
                 return "nil";
         case OBJECT_NUMBER:
-                return numberToString(*(const double *)object->data);
+                return numberToString(*(const double *)object->data, minPrecision);
         case OBJECT_STRING:
                 return (const char *)object->data;
         }

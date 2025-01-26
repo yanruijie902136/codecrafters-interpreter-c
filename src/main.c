@@ -5,6 +5,8 @@
 #include <sysexits.h>
 
 #include "lox/expr.h"
+#include "lox/interpreter.h"
+#include "lox/object.h"
 #include "lox/parser.h"
 #include "lox/scanner.h"
 #include "lox/ptr_vector.h"
@@ -48,12 +50,22 @@ static PtrVector *tokenize(const char *source, bool printTokens) {
         return tokens;
 }
 
-static void parse(const PtrVector *tokens) {
+static Expr *parse(const PtrVector *tokens, bool printExpr) {
         Expr *expr = parseToExpr(tokens);
         if (expr == NULL) {
                 exit(EX_DATAERR);
         }
-        printf("%s\n", exprToString(expr));
+
+        if (printExpr) {
+                printf("%s\n", exprToString(expr));
+        }
+
+        return expr;
+}
+
+static void evaluate(const Expr *expr) {
+        const Object *object = interpretExpr(expr);
+        printf("%s\n", objectToString(object, true));
 }
 
 int main(int argc, char *argv[]) {
@@ -69,7 +81,10 @@ int main(int argc, char *argv[]) {
                 tokenize(source, true);
         }
         else if (strcmp(command, "parse") == 0) {
-                parse(tokenize(source, false));
+                parse(tokenize(source, false), true);
+        }
+        else if (strcmp(command, "evaluate") == 0) {
+                evaluate(parse(tokenize(source, false), false));
         }
         else {
                 errx(EX_USAGE, "unknown command: %s", command);
