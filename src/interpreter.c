@@ -43,6 +43,22 @@ evaluate_binary_expr(const BinaryExpr *binary_expr)
         double num1, num2;
         switch (binary_expr->operator->type)
         {
+        case TOKEN_GREATER:
+                check_number_operands(left, right, &num1, &num2);
+                object = object_create_bool(num1 > num2);
+                break;
+        case TOKEN_GREATER_EQUAL:
+                check_number_operands(left, right, &num1, &num2);
+                object = object_create_bool(num1 >= num2);
+                break;
+        case TOKEN_LESS:
+                check_number_operands(left, right, &num1, &num2);
+                object = object_create_bool(num1 < num2);
+                break;
+        case TOKEN_LESS_EQUAL:
+                check_number_operands(left, right, &num1, &num2);
+                object = object_create_bool(num1 <= num2);
+                break;
         case TOKEN_MINUS:
                 check_number_operands(left, right, &num1, &num2);
                 object = object_create_number(num1 - num2);
