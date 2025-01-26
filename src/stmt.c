@@ -25,3 +25,12 @@ print_stmt_create(const Expr *expression)
         print_stmt->expression = expression;
         return stmt_create(STMT_PRINT, print_stmt);
 }
+
+Stmt *
+var_stmt_create(const Token *name, const Expr *initializer)
+{
+        VarStmt *var_stmt = xmalloc(sizeof(VarStmt));
+        var_stmt->name = name;
+        var_stmt->initializer = initializer;
+        return stmt_create(STMT_VAR, var_stmt);
+}

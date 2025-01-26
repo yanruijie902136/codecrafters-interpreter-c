@@ -84,6 +84,8 @@ static Expr *parse_factor(void);
 static Expr *parse_unary(void);
 static Expr *parse_primary(void);
 
+static Stmt *parse_declaration(void);
+static Stmt *parse_var_declaration(void);
 static Stmt *parse_statement(void);
 static Stmt *parse_expression_statement(void);
 static Stmt *parse_print_statement(void);
@@ -164,13 +166,14 @@ parse_primary(void)
 {
         if (match(TOKEN_FALSE))
                 return literal_expr_create(object_create_bool(false));
-        else if (match(TOKEN_TRUE))
+        if (match(TOKEN_TRUE))
                 return literal_expr_create(object_create_bool(true));
-        else if (match(TOKEN_NIL))
+        if (match(TOKEN_NIL))
                 return literal_expr_create(object_create_nil());
-        else if (match(TOKEN_NUMBER) || match(TOKEN_STRING))
+        if (match(TOKEN_NUMBER) || match(TOKEN_STRING))
                 return literal_expr_create(previous()->literal);
-        else if (match(TOKEN_LEFT_PAREN))
+
+        if (match(TOKEN_LEFT_PAREN))
         {
                 Expr *expression = parse_expression();
                 if (!match(TOKEN_RIGHT_PAREN))
@@ -178,7 +181,35 @@ parse_primary(void)
                 return grouping_expr_create(expression);
         }
 
+        if (match(TOKEN_IDENTIFIER))
+                return variable_expr_create(previous());
+
         error(peek(), "Expect expression.");
+}
+
+static Stmt *
+parse_declaration(void)
+{
+        if (match(TOKEN_VAR))
+                return parse_var_declaration();
+        return parse_statement();
+}
+
+static Stmt *
+parse_var_declaration(void)
+{
+        if (!match(TOKEN_IDENTIFIER))
+                error(peek(), "Expect variable name.");
+        Token *name = previous();
+
+        Expr *initializer = NULL;
+        if (match(TOKEN_EQUAL))
+                initializer = parse_expression();
+
+        if (!match(TOKEN_SEMICOLON))
+                error(peek(), "Expect ';' after variable declaration.");
+
+        return var_stmt_create(name, initializer);
 }
 
 static Stmt *
@@ -227,6 +258,6 @@ parse_to_stmts(const PtrVector *tokens)
 
         PtrVector *statements = ptr_vector_create();
         while (!is_at_end())
-                ptr_vector_append(statements, parse_statement());
+                ptr_vector_append(statements, parse_declaration());
         return statements;
 }

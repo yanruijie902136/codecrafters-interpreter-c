@@ -1,4 +1,5 @@
 #include "lox/interpreter.h"
+#include "lox/environment.h"
 #include "lox/expr.h"
 #include "lox/object.h"
 #include "lox/ptr_vector.h"
@@ -14,9 +15,16 @@
 
 typedef struct {
         jmp_buf env;
+        Environment *environment;
 } Interpreter;
 
 static Interpreter interpreter;
+
+static void
+init(void)
+{
+        interpreter.environment = environment_create();
+}
 
 static Object *evaluate_expr(const Expr *expr);
 
@@ -180,6 +188,21 @@ evaluate_unary_expr(const UnaryExpr *unary_expr)
 }
 
 static Object *
+evaluate_variable_expr(const VariableExpr *variable_expr)
+{
+        const char *name = variable_expr->name->lexeme;
+
+        Object *object = environment_get(interpreter.environment, name);
+        if (object == NULL)
+        {
+                fprintf(stderr, "Undefined variable '%s'.\n", name);
+                longjmp(interpreter.env, 1);
+        }
+
+        return object;
+}
+
+static Object *
 evaluate_expr(const Expr *expr)
 {
         switch (expr->type)
@@ -192,12 +215,16 @@ evaluate_expr(const Expr *expr)
                 return evaluate_literal_expr(expr->data);
         case EXPR_UNARY:
                 return evaluate_unary_expr(expr->data);
+        case EXPR_VARIABLE:
+                return evaluate_variable_expr(expr->data);
         }
 }
 
 Object *
 interpret_expr(const Expr *expr)
 {
+        init();
+
         if (setjmp(interpreter.env) != 0)
                 return NULL;
         return evaluate_expr(expr);
@@ -221,6 +248,19 @@ execute_print_stmt(const PrintStmt *print_stmt)
 }
 
 static void
+execute_var_stmt(const VarStmt *var_stmt)
+{
+        Object *object;
+        if (var_stmt->initializer == NULL)
+                object = object_create_nil();
+        else
+                object = evaluate_expr(var_stmt->initializer);
+
+        const char *name = var_stmt->name->lexeme;
+        environment_define(interpreter.environment, name, object);
+}
+
+static void
 execute_stmt(const Stmt *stmt)
 {
         switch (stmt->type)
@@ -231,12 +271,17 @@ execute_stmt(const Stmt *stmt)
         case STMT_PRINT:
                 execute_print_stmt(stmt->data);
                 break;
+        case STMT_VAR:
+                execute_var_stmt(stmt->data);
+                break;
         }
 }
 
 int
 interpret_stmts(const PtrVector *stmts)
 {
+        init();
+
         if (setjmp(interpreter.env) != 0)
                 return -1;
 
