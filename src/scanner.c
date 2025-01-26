@@ -46,6 +46,12 @@ static void scanToken(void) {
         case ')':
                 addToken(TOKEN_RIGHT_PAREN);
                 break;
+        case '{':
+                addToken(TOKEN_LEFT_BRACE);
+                break;
+        case '}':
+                addToken(TOKEN_RIGHT_BRACE);
+                break;
         }
 }
 
