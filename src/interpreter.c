@@ -2,8 +2,11 @@
 #include "lox/expr.h"
 #include "lox/object.h"
 #include "lox/token.h"
+#include "lox/xmalloc.h"
 
 #include <err.h>
+#include <stdio.h>
+#include <string.h>
 #include <sysexits.h>
 
 static Object *evaluate_expr(const Expr *expr);
@@ -21,6 +24,15 @@ check_number_operand(const Object *right, double *num)
         *num = *(const double *)right->data;
 }
 
+static char *
+concatenate(const char *s1, const char *s2)
+{
+        size_t n = strlen(s1) + strlen(s2) + 1;
+        char *str = xmalloc(n + 1);
+        snprintf(str, n + 1, "%s%s", s1, s2);
+        return str;
+}
+
 static Object *
 evaluate_binary_expr(const BinaryExpr *binary_expr)
 {
@@ -36,6 +48,11 @@ evaluate_binary_expr(const BinaryExpr *binary_expr)
                 object = object_create_number(num1 - num2);
                 break;
         case TOKEN_PLUS:
+                if (left->type == OBJECT_STRING && right->type == OBJECT_STRING)
+                {
+                        object = object_create_string(concatenate(left->data, right->data));
+                        break;
+                }
                 check_number_operands(left, right, &num1, &num2);
                 object = object_create_number(num1 + num2);
                 break;
