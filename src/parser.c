@@ -44,6 +44,7 @@ static bool match(TokenType type) {
 }
 
 static Expr *parseExpression(void);
+static Expr *parseEquality(void);
 static Expr *parseComparison(void);
 static Expr *parseTerm(void);
 static Expr *parseFactor(void);
@@ -51,7 +52,17 @@ static Expr *parseUnary(void);
 static Expr *parsePrimary(void);
 
 static Expr *parseExpression(void) {
-        return parseComparison();
+        return parseEquality();
+}
+
+static Expr *parseEquality(void) {
+        Expr *expr = parseComparison();
+        while (match(TOKEN_BANG_EQUAL) || match(TOKEN_EQUAL_EQUAL)) {
+                Token *operator = previous();
+                Expr *right = parseComparison();
+                expr = createBinaryExpr(expr, operator, right);
+        }
+        return expr;
 }
 
 static Expr *parseComparison(void) {
