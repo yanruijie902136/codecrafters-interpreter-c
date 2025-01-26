@@ -44,9 +44,19 @@ static bool match(TokenType type) {
 }
 
 static Expr *parseExpression(void);
+static Expr *parseUnary(void);
 static Expr *parsePrimary(void);
 
 static Expr *parseExpression(void) {
+        return parseUnary();
+}
+
+static Expr *parseUnary(void) {
+        if (match(TOKEN_BANG) || match(TOKEN_MINUS)) {
+                Token *operator = previous();
+                Expr *right = parseUnary();
+                return createUnaryExpr(operator, right);
+        }
         return parsePrimary();
 }
 
