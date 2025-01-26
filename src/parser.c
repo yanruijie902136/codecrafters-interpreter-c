@@ -44,13 +44,24 @@ static bool match(TokenType type) {
 }
 
 static Expr *parseExpression(void);
+static Expr *parseComparison(void);
 static Expr *parseTerm(void);
 static Expr *parseFactor(void);
 static Expr *parseUnary(void);
 static Expr *parsePrimary(void);
 
 static Expr *parseExpression(void) {
-        return parseTerm();
+        return parseComparison();
+}
+
+static Expr *parseComparison(void) {
+        Expr *expr = parseTerm();
+        while (match(TOKEN_GREATER) || match(TOKEN_GREATER_EQUAL) || match(TOKEN_LESS) || match(TOKEN_LESS_EQUAL)) {
+                Token *operator = previous();
+                Expr *right = parseTerm();
+                expr = createBinaryExpr(expr, operator, right);
+        }
+        return expr;
 }
 
 static Expr *parseTerm(void) {
