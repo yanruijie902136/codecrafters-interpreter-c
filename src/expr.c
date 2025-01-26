@@ -51,6 +51,16 @@ literal_expr_create(const Object *value)
 }
 
 Expr *
+logical_expr_create(const Expr *left, const Token *operator, const Expr *right)
+{
+        LogicalExpr *logical_expr = xmalloc(sizeof(LogicalExpr));
+        logical_expr->left = left;
+        logical_expr->operator = operator;
+        logical_expr->right = right;
+        return expr_create(EXPR_LOGICAL, logical_expr);
+}
+
+Expr *
 unary_expr_create(const Token *operator, const Expr *right)
 {
         UnaryExpr *unary_expr = xmalloc(sizeof(UnaryExpr));

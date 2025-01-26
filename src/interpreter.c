@@ -179,6 +179,29 @@ is_truthy(const Object *object)
 }
 
 static Object *
+evaluate_logical_expr(const LogicalExpr *logical_expr)
+{
+        Object *left = evaluate_expr(logical_expr->left);
+
+        switch (logical_expr->operator->type)
+        {
+        case TOKEN_AND:
+                if (!is_truthy(left))
+                        return left;
+                break;
+        case TOKEN_OR:
+                if (is_truthy(left))
+                        return left;
+                break;
+        default:
+                errx(EX_SOFTWARE, "unexpected logical operator");
+        }
+
+        object_destroy(left);
+        return evaluate_expr(logical_expr->right);
+}
+
+static Object *
 evaluate_unary_expr(const UnaryExpr *unary_expr)
 {
         Object *right = evaluate_expr(unary_expr->right);
@@ -230,6 +253,8 @@ evaluate_expr(const Expr *expr)
                 return evaluate_grouping_expr(expr->data);
         case EXPR_LITERAL:
                 return evaluate_literal_expr(expr->data);
+        case EXPR_LOGICAL:
+                return evaluate_logical_expr(expr->data);
         case EXPR_UNARY:
                 return evaluate_unary_expr(expr->data);
         case EXPR_VARIABLE:

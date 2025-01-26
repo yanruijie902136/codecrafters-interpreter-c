@@ -78,6 +78,8 @@ error(const Token *token, const char *format, ...)
 
 static Expr *parse_expression(void);
 static Expr *parse_assignment(void);
+static Expr *parse_or(void);
+static Expr *parse_and(void);
 static Expr *parse_equality(void);
 static Expr *parse_comparison(void);
 static Expr *parse_term(void);
@@ -102,7 +104,7 @@ parse_expression(void)
 static Expr *
 parse_assignment(void)
 {
-        Expr *expr = parse_equality();
+        Expr *expr = parse_or();
 
         if (match(TOKEN_EQUAL))
         {
@@ -118,6 +120,32 @@ parse_assignment(void)
                 error(equals, "Invalid assignment target.");
         }
 
+        return expr;
+}
+
+static Expr *
+parse_or(void)
+{
+        Expr *expr = parse_and();
+        while (match(TOKEN_OR))
+        {
+                Token *operator = previous();
+                Expr *right = parse_and();
+                expr = logical_expr_create(expr, operator, right);
+        }
+        return expr;
+}
+
+static Expr *
+parse_and(void)
+{
+        Expr *expr = parse_equality();
+        while (match(TOKEN_AND))
+        {
+                Token *operator = previous();
+                Expr *right = parse_equality();
+                expr = logical_expr_create(expr, operator, right);
+        }
         return expr;
 }
 
