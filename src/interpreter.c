@@ -5,15 +5,27 @@
 #include "lox/xmalloc.h"
 
 #include <err.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <string.h>
 #include <sysexits.h>
+
+typedef struct {
+        jmp_buf env;
+} Interpreter;
+
+static Interpreter interpreter;
 
 static Object *evaluate_expr(const Expr *expr);
 
 static void
 check_number_operands(const Object *left, const Object *right, double *num1, double *num2)
 {
+        if (left->type != OBJECT_NUMBER || right->type != OBJECT_NUMBER)
+        {
+                fprintf(stderr, "Operand must be numbers.\n");
+                longjmp(interpreter.env, 1);
+        }
         *num1 = *(const double *)left->data;
         *num2 = *(const double *)right->data;
 }
@@ -21,6 +33,11 @@ check_number_operands(const Object *left, const Object *right, double *num1, dou
 static void
 check_number_operand(const Object *right, double *num)
 {
+        if (right->type != OBJECT_NUMBER)
+        {
+                fprintf(stderr, "Operand must be a number.\n");
+                longjmp(interpreter.env, 1);
+        }
         *num = *(const double *)right->data;
 }
 
@@ -179,5 +196,7 @@ evaluate_expr(const Expr *expr)
 Object *
 interpret_expr(const Expr *expr)
 {
-        return evaluate_expr(expr);
+        if (setjmp(interpreter.env) == 0)
+                return evaluate_expr(expr);
+        return NULL;
 }

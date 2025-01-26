@@ -13,11 +13,12 @@
 #include "lox/token.h"
 #include "lox/xmalloc.h"
 
-static char *read_source(const char *path) {
+static char *
+read_source(const char *path)
+{
         FILE *file = fopen(path, "rb");
-        if (file == NULL) {
+        if (file == NULL)
                 err(EX_NOINPUT, "%s", path);
-        }
 
         fseek(file, 0, SEEK_END);
         size_t file_size = ftell(file);
@@ -32,44 +33,55 @@ static char *read_source(const char *path) {
         return source;
 }
 
-static PtrVector *tokenize(const char *source, bool print_tokens) {
+static PtrVector *
+tokenize(const char *source, bool print_tokens)
+{
         PtrVector *tokens = scan_tokens(source);
 
-        if (print_tokens) {
+        if (print_tokens)
+        {
                 size_t num_tokens = ptr_vector_size(tokens);
-                for (size_t i = 0; i < num_tokens; i++) {
+                for (size_t i = 0; i < num_tokens; i++)
+                {
                         Token *token = ptr_vector_at(tokens, i);
                         printf("%s\n", token_stringify(token));
                 }
         }
 
-        if (has_lexical_error()) {
+        if (has_lexical_error())
                 exit(EX_DATAERR);
-        }
 
         return tokens;
 }
 
-static Expr *parse(const PtrVector *tokens, bool print_expr) {
+static Expr *
+parse(const PtrVector *tokens, bool print_expr)
+{
         Expr *expr = parse_to_expr(tokens);
-        if (expr == NULL) {
+        if (expr == NULL)
                 exit(EX_DATAERR);
-        }
 
-        if (print_expr) {
+        if (print_expr)
                 printf("%s\n", expr_stringify(expr));
-        }
 
         return expr;
 }
 
-static void evaluate(const Expr *expr) {
+static void
+evaluate(const Expr *expr)
+{
         const Object *object = interpret_expr(expr);
+        if (object == NULL)
+                exit(EX_SOFTWARE);
+
         printf("%s\n", object_stringify(object, true));
 }
 
-int main(int argc, char *argv[]) {
-        if (argc != 3) {
+int
+main(int argc, char *argv[])
+{
+        if (argc != 3)
+        {
                 fprintf(stderr, "usage: your_program.sh <command> <file>\n");
                 exit(EX_USAGE);
         }
@@ -77,18 +89,14 @@ int main(int argc, char *argv[]) {
         const char *source = read_source(argv[2]);
 
         const char *command = argv[1];
-        if (strcmp(command, "tokenize") == 0) {
+        if (strcmp(command, "tokenize") == 0)
                 tokenize(source, true);
-        }
-        else if (strcmp(command, "parse") == 0) {
+        else if (strcmp(command, "parse") == 0)
                 parse(tokenize(source, false), true);
-        }
-        else if (strcmp(command, "evaluate") == 0) {
+        else if (strcmp(command, "evaluate") == 0)
                 evaluate(parse(tokenize(source, false), false));
-        }
-        else {
+        else
                 errx(EX_USAGE, "unknown command: %s", command);
-        }
 
         exit(EX_OK);
 }
