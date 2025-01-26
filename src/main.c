@@ -1,71 +1,58 @@
+#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sysexits.h>
 
-char *read_file_contents(const char *filename);
+#include "lox/scanner.h"
+#include "lox/ptr_vector.h"
+#include "lox/token.h"
+#include "lox/xmalloc.h"
 
-int main(int argc, char *argv[]) {
-    // Disable output buffering
-    setbuf(stdout, NULL);
-    setbuf(stderr, NULL);
+static char *readSource(const char *path) {
+        FILE *file = fopen(path, "rb");
+        if (file == NULL) {
+                err(EX_NOINPUT, "%s", path);
+        }
 
-    if (argc < 3) {
-        fprintf(stderr, "Usage: ./your_program tokenize <filename>\n");
-        return 1;
-    }
+        fseek(file, 0, SEEK_END);
+        size_t fileSize = ftell(file);
+        fseek(file, 0, SEEK_SET);
 
-    const char *command = argv[1];
+        char *source = xmalloc(fileSize + 1);
+        fread(source, sizeof(char), fileSize, file);
+        source[fileSize] = '\0';
 
-    if (strcmp(command, "tokenize") == 0) {
-        // You can use print statements as follows for debugging, they'll be visible when running tests.
-        fprintf(stderr, "Logs from your program will appear here!\n");
-        
-        char *file_contents = read_file_contents(argv[2]);
+        fclose(file);
 
-        // Uncomment this block to pass the first stage
-        // if (strlen(file_contents) > 0) {
-        //     fprintf(stderr, "Scanner not implemented\n");
-        //     exit(1);
-        // } 
-        // printf("EOF  null\n"); // Placeholder, remove this line when implementing the scanner
-        
-        free(file_contents);
-    } else {
-        fprintf(stderr, "Unknown command: %s\n", command);
-        return 1;
-    }
-
-    return 0;
+        return source;
 }
 
-char *read_file_contents(const char *filename) {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        fprintf(stderr, "Error reading file: %s\n", filename);
-        return NULL;
-    }
+static void tokenize(const char *source) {
+        PtrVector *tokens = scanTokens(source);
 
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    rewind(file);
+        size_t numTokens = ptrVectorSize(tokens);
+        for (size_t i = 0; i < numTokens; i++) {
+                Token *token = ptrVectorAt(tokens, i);
+                printf("%s\n", tokenToString(token));
+        }
+}
 
-    char *file_contents = malloc(file_size + 1);
-    if (file_contents == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
-        fclose(file);
-        return NULL;
-    }
+int main(int argc, char *argv[]) {
+        if (argc != 3) {
+                fprintf(stderr, "usage: your_program.sh <command> <file>\n");
+                exit(EX_USAGE);
+        }
 
-    size_t bytes_read = fread(file_contents, 1, file_size, file);
-    if (bytes_read < file_size) {
-        fprintf(stderr, "Error reading file contents\n");
-        free(file_contents);
-        fclose(file);
-        return NULL;
-    }
+        const char *source = readSource(argv[2]);
 
-    file_contents[file_size] = '\0';
-    fclose(file);
+        const char *command = argv[1];
+        if (strcmp(command, "tokenize") == 0) {
+                tokenize(source);
+        }
+        else {
+                errx(EX_USAGE, "unknown command: %s", command);
+        }
 
-    return file_contents;
+        exit(EX_OK);
 }
