@@ -2,6 +2,7 @@
 #define CODECRAFTERS_INTERPRETER_OBJECT_H
 
 typedef enum {
+        OBJECT_NUMBER,
         OBJECT_STRING,
 } ObjectType;
 
@@ -10,6 +11,7 @@ typedef struct {
         const void *data;
 } Object;
 
+Object *createNumberObject(double num);
 Object *createStringObject(const char *str);
 const char *objectToString(const Object *object);
 

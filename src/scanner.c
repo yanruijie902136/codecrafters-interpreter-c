@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 typedef struct {
@@ -38,6 +39,10 @@ static char advance(void) {
 
 static char peek(void) {
         return *scanner.current;
+}
+
+static char peekNext(void) {
+        return isAtEnd() ? '\0' : *(scanner.current + 1);
 }
 
 static bool match(char expected) {
@@ -93,6 +98,23 @@ static void scanString(void) {
         char *lexeme = getLexeme();
         Object *literal = createStringObject(removeQuotes(lexeme));
         addTokenFull(TOKEN_STRING, lexeme, literal);
+}
+
+static void scanNumber(void) {
+        while (isdigit(peek())) {
+                advance();
+        }
+
+        if (peek() == '.' && isdigit(peekNext())) {
+                advance();
+                while (isdigit(peek())) {
+                        advance();
+                }
+        }
+
+        char *lexeme = getLexeme();
+        Object *literal = createNumberObject(atof(lexeme));
+        addTokenFull(TOKEN_NUMBER, lexeme, literal);
 }
 
 static void scanToken(void) {
@@ -157,6 +179,10 @@ static void scanToken(void) {
                 break;
         default:
                 if (isspace(c)) {
+                        break;
+                }
+                else if (isdigit(c)) {
+                        scanNumber();
                         break;
                 }
                 error("Unexpected character: %c", c);
