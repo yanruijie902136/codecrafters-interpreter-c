@@ -4,9 +4,14 @@
 #include "lox/ptr_vector.h"
 #include "lox/token.h"
 
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stdio.h>
+
 typedef struct {
         const PtrVector *tokens;
         size_t current;
+        jmp_buf env;
 } Parser;
 
 static Parser parser;
@@ -41,6 +46,23 @@ static bool match(TokenType type) {
         }
         advance();
         return true;
+}
+
+__attribute__((noreturn))
+static void error(const Token *token, const char *format, ...) {
+        fprintf(stderr, "[line %zu] Error at ", token->line);
+        if (token->type == TOKEN_EOF) {
+                fprintf(stderr, "end: ");
+        }
+        else {
+                fprintf(stderr, "'%s': ", token->lexeme);
+        }
+        va_list ap;
+        va_start(ap, format);
+        vfprintf(stderr, format, ap);
+        va_end(ap);
+        fprintf(stderr, "\n");
+        longjmp(parser.env, 1);
 }
 
 static Expr *parseExpression(void);
@@ -119,14 +141,19 @@ static Expr *parsePrimary(void) {
         }
         else if (match(TOKEN_LEFT_PAREN)) {
                 Expr *expression = parseExpression();
-                advance();
+                if (!match(TOKEN_RIGHT_PAREN)) {
+                        error(peek(), "Expect ')' after expression.");
+                }
                 return createGroupingExpr(expression);
         }
 
-        return NULL;
+        error(peek(), "Expect expression.");
 }
 
 Expr *parseToExpr(const PtrVector *tokens) {
         init(tokens);
-        return parseExpression();
+        if (setjmp(parser.env) == 0) {
+                return parseExpression();
+        }
+        return NULL;
 }

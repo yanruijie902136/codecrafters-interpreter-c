@@ -59,7 +59,7 @@ static char *getLexeme(void) {
 }
 
 static void addTokenFull(TokenType type, const char *lexeme, const Object *literal) {
-        Token *token = createToken(type, lexeme, literal);
+        Token *token = createToken(type, lexeme, literal, scanner.line);
         ptrVectorAppend(scanner.tokens, token);
 }
 

@@ -4,11 +4,12 @@
 
 #include <stdio.h>
 
-Token *createToken(TokenType type, const char *lexeme, const Object *literal) {
+Token *createToken(TokenType type, const char *lexeme, const Object *literal, size_t line) {
         Token *token = xmalloc(sizeof(Token));
         token->type = type;
         token->lexeme = lexeme;
         token->literal = literal;
+        token->line = line;
         return token;
 }
 

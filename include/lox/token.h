@@ -1,6 +1,8 @@
 #ifndef CODECRAFTERS_INTERPRETER_TOKEN_H
 #define CODECRAFTERS_INTERPRETER_TOKEN_H
 
+#include <stddef.h>
+
 #include "lox/object.h"
 
 typedef enum {
@@ -49,9 +51,10 @@ typedef struct {
         TokenType type;
         const char *lexeme;
         const Object *literal;
+        size_t line;
 } Token;
 
-Token *createToken(TokenType type, const char *lexeme, const Object *literal);
+Token *createToken(TokenType type, const char *lexeme, const Object *literal, size_t line);
 const char *tokenToString(const Token *token);
 
 #endif

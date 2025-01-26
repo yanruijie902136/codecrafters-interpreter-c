@@ -50,6 +50,9 @@ static PtrVector *tokenize(const char *source, bool printTokens) {
 
 static void parse(const PtrVector *tokens) {
         Expr *expr = parseToExpr(tokens);
+        if (expr == NULL) {
+                exit(EX_DATAERR);
+        }
         printf("%s\n", exprToString(expr));
 }
 
