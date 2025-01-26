@@ -31,6 +31,14 @@ evaluate_binary_expr(const BinaryExpr *binary_expr)
         double num1, num2;
         switch (binary_expr->operator->type)
         {
+        case TOKEN_MINUS:
+                check_number_operands(left, right, &num1, &num2);
+                object = object_create_number(num1 - num2);
+                break;
+        case TOKEN_PLUS:
+                check_number_operands(left, right, &num1, &num2);
+                object = object_create_number(num1 + num2);
+                break;
         case TOKEN_SLASH:
                 check_number_operands(left, right, &num1, &num2);
                 object = object_create_number(num1 / num2);
