@@ -35,10 +35,10 @@ typedef struct {
         const Expr *right;
 } UnaryExpr;
 
-Expr *createBinaryExpr(const Expr *left, const Token *operator, const Expr *right);
-Expr *createGroupingExpr(const Expr *expression);
-Expr *createLiteralExpr(const Object *value);
-Expr *createUnaryExpr(const Token *operator, const Expr *right);
-const char *exprToString(const Expr *expr);
+Expr *binary_expr_create(const Expr *left, const Token *operator, const Expr *right);
+Expr *grouping_expr_create(const Expr *expression);
+Expr *literal_expr_create(const Object *value);
+Expr *unary_expr_create(const Token *operator, const Expr *right);
+const char *expr_stringify(const Expr *expr);
 
 #endif

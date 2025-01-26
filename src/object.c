@@ -5,54 +5,54 @@
 #include <stdlib.h>
 #include <string.h>
 
-static Object *createObject(ObjectType type, const void *data) {
+static Object *object_create(ObjectType type, const void *data) {
         Object *object = xmalloc(sizeof(Object));
         object->type = type;
         object->data = data;
         return object;
 }
 
-Object *createBoolObject(bool boolean) {
-        return createObject(OBJECT_BOOL, xmemdup(&boolean, sizeof(boolean)));
+Object *object_create_bool(bool boolean) {
+        return object_create(OBJECT_BOOL, xmemdup(&boolean, sizeof(boolean)));
 }
 
-Object *createNilObject(void) {
-        return createObject(OBJECT_NIL, NULL);
+Object *object_create_nil(void) {
+        return object_create(OBJECT_NIL, NULL);
 }
 
-Object *createNumberObject(double num) {
-        return createObject(OBJECT_NUMBER, xmemdup(&num, sizeof(num)));
+Object *object_create_number(double num) {
+        return object_create(OBJECT_NUMBER, xmemdup(&num, sizeof(num)));
 }
 
-Object *createStringObject(const char *str) {
-        return createObject(OBJECT_STRING, str);
+Object *object_create_string(const char *str) {
+        return object_create(OBJECT_STRING, str);
 }
 
-Object *copyObject(const Object *object) {
+Object *object_copy(const Object *object) {
         switch (object->type) {
         case OBJECT_BOOL:
-                return createObject(OBJECT_BOOL, xmemdup(object->data, sizeof(bool)));
+                return object_create(OBJECT_BOOL, xmemdup(object->data, sizeof(bool)));
         case OBJECT_NIL:
-                return createObject(OBJECT_NIL, NULL);
+                return object_create(OBJECT_NIL, NULL);
         case OBJECT_NUMBER:
-                return createObject(OBJECT_NUMBER, xmemdup(object->data, sizeof(double)));
+                return object_create(OBJECT_NUMBER, xmemdup(object->data, sizeof(double)));
         case OBJECT_STRING:
-                return createObject(OBJECT_STRING, xstrdup(object->data));
+                return object_create(OBJECT_STRING, xstrdup(object->data));
         }
 }
 
-void freeObject(Object *object) {
+void object_destroy(Object *object) {
         free((void *)object->data);
         free(object);
 }
 
-static const char *numberToString(double num, bool minPrecision) {
+static const char *number_to_string(double num, bool min_precision) {
         static char str[1024];
         snprintf(str, sizeof(str), "%lf", num);
 
         char *dotptr = strchr(str, '.');
         if (dotptr == NULL) {
-                if (!minPrecision) {
+                if (!min_precision) {
                         strncat(str, ".0", 3);
                 }
                 return str;
@@ -62,7 +62,7 @@ static const char *numberToString(double num, bool minPrecision) {
         while (ptr > dotptr + 1 && *ptr == '0') {
                 ptr--;
         }
-        if (minPrecision && ptr == dotptr + 1 && *ptr == '0') {
+        if (min_precision && ptr == dotptr + 1 && *ptr == '0') {
                 *dotptr = '\0';
                 return str;
         }
@@ -70,14 +70,14 @@ static const char *numberToString(double num, bool minPrecision) {
         return str;
 }
 
-const char *objectToString(const Object *object, bool minPrecision) {
+const char *object_stringify(const Object *object, bool min_precision) {
         switch (object->type) {
         case OBJECT_BOOL:
                 return *(const bool *)object->data ? "true" : "false";
         case OBJECT_NIL:
                 return "nil";
         case OBJECT_NUMBER:
-                return numberToString(*(const double *)object->data, minPrecision);
+                return number_to_string(*(const double *)object->data, min_precision);
         case OBJECT_STRING:
                 return (const char *)object->data;
         }

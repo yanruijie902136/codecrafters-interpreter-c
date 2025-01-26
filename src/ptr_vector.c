@@ -9,7 +9,9 @@ struct PtrVector {
 
 static const size_t PTRSIZE = sizeof(void *);
 
-PtrVector *createPtrVector(void) {
+PtrVector *
+ptr_vector_create(void)
+{
         PtrVector *vector = xmalloc(sizeof(PtrVector));
         vector->capacity = 10;
         vector->mem = xmalloc(PTRSIZE * vector->capacity);
@@ -17,16 +19,23 @@ PtrVector *createPtrVector(void) {
         return vector;
 }
 
-size_t ptrVectorSize(const PtrVector *vector) {
+size_t
+ptr_vector_size(const PtrVector *vector)
+{
         return vector->size;
 }
 
-void *ptrVectorAt(const PtrVector *vector, size_t index) {
+void *
+ptr_vector_at(const PtrVector *vector, size_t index)
+{
         return *(void **)(vector->mem + PTRSIZE * index);
 }
 
-void ptrVectorAppend(PtrVector *vector, const void *ptr) {
-        if (vector->capacity == vector->size) {
+void
+ptr_vector_append(PtrVector *vector, const void *ptr)
+{
+        if (vector->capacity == vector->size)
+        {
                 vector->capacity *= 2;
                 vector->mem = xrealloc(vector->mem, PTRSIZE * vector->capacity);
         }

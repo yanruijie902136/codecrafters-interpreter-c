@@ -4,6 +4,6 @@
 #include "lox/expr.h"
 #include "lox/ptr_vector.h"
 
-Expr *parseToExpr(const PtrVector *tokens);
+Expr *parse_to_expr(const PtrVector *tokens);
 
 #endif

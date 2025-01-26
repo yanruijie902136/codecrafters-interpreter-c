@@ -16,47 +16,57 @@ typedef struct {
 
 static Parser parser;
 
-static void init(const PtrVector *tokens) {
+static void
+init(const PtrVector *tokens)
+{
         parser.tokens = tokens;
         parser.current = 0;
 }
 
-static Token *peek(void) {
-        return ptrVectorAt(parser.tokens, parser.current);
+static Token *
+peek(void)
+{
+        return ptr_vector_at(parser.tokens, parser.current);
 }
 
-static Token *previous(void) {
-        return ptrVectorAt(parser.tokens, parser.current - 1);
+static Token *
+previous(void)
+{
+        return ptr_vector_at(parser.tokens, parser.current - 1);
 }
 
-static bool isAtEnd(void) {
+static bool
+is_at_end(void)
+{
         return peek()->type == TOKEN_EOF;
 }
 
-static Token *advance(void) {
-        if (!isAtEnd()) {
+static Token *
+advance(void)
+{
+        if (!is_at_end())
                 parser.current++;
-        }
         return previous();
 }
 
-static bool match(TokenType type) {
-        if (peek()->type != type) {
+static bool
+match(TokenType type)
+{
+        if (peek()->type != type)
                 return false;
-        }
         advance();
         return true;
 }
 
 __attribute__((noreturn))
-static void error(const Token *token, const char *format, ...) {
+static void
+error(const Token *token, const char *format, ...)
+{
         fprintf(stderr, "[line %zu] Error at ", token->line);
-        if (token->type == TOKEN_EOF) {
+        if (token->type == TOKEN_EOF)
                 fprintf(stderr, "end: ");
-        }
-        else {
+        else
                 fprintf(stderr, "'%s': ", token->lexeme);
-        }
         va_list ap;
         va_start(ap, format);
         vfprintf(stderr, format, ap);
@@ -65,95 +75,112 @@ static void error(const Token *token, const char *format, ...) {
         longjmp(parser.env, 1);
 }
 
-static Expr *parseExpression(void);
-static Expr *parseEquality(void);
-static Expr *parseComparison(void);
-static Expr *parseTerm(void);
-static Expr *parseFactor(void);
-static Expr *parseUnary(void);
-static Expr *parsePrimary(void);
+static Expr *parse_expression(void);
+static Expr *parse_equality(void);
+static Expr *parse_comparison(void);
+static Expr *parse_term(void);
+static Expr *parse_factor(void);
+static Expr *parse_unary(void);
+static Expr *parse_primary(void);
 
-static Expr *parseExpression(void) {
-        return parseEquality();
+static Expr *
+parse_expression(void)
+{
+        return parse_equality();
 }
 
-static Expr *parseEquality(void) {
-        Expr *expr = parseComparison();
-        while (match(TOKEN_BANG_EQUAL) || match(TOKEN_EQUAL_EQUAL)) {
+static Expr *
+parse_equality(void)
+{
+        Expr *expr = parse_comparison();
+        while (match(TOKEN_BANG_EQUAL) || match(TOKEN_EQUAL_EQUAL))
+        {
                 Token *operator = previous();
-                Expr *right = parseComparison();
-                expr = createBinaryExpr(expr, operator, right);
+                Expr *right = parse_comparison();
+                expr = binary_expr_create(expr, operator, right);
         }
         return expr;
 }
 
-static Expr *parseComparison(void) {
-        Expr *expr = parseTerm();
-        while (match(TOKEN_GREATER) || match(TOKEN_GREATER_EQUAL) || match(TOKEN_LESS) || match(TOKEN_LESS_EQUAL)) {
+static Expr *
+parse_comparison(void)
+{
+        Expr *expr = parse_term();
+        while (match(TOKEN_GREATER) || match(TOKEN_GREATER_EQUAL) ||
+                match(TOKEN_LESS) || match(TOKEN_LESS_EQUAL))
+        {
                 Token *operator = previous();
-                Expr *right = parseTerm();
-                expr = createBinaryExpr(expr, operator, right);
+                Expr *right = parse_term();
+                expr = binary_expr_create(expr, operator, right);
         }
         return expr;
 }
 
-static Expr *parseTerm(void) {
-        Expr *expr = parseFactor();
-        while (match(TOKEN_MINUS) || match(TOKEN_PLUS)) {
+static Expr *
+parse_term(void)
+{
+        Expr *expr = parse_factor();
+        while (match(TOKEN_MINUS) || match(TOKEN_PLUS))
+        {
                 Token *operator = previous();
-                Expr *right = parseFactor();
-                expr = createBinaryExpr(expr, operator, right);
+                Expr *right = parse_factor();
+                expr = binary_expr_create(expr, operator, right);
         }
         return expr;
 }
 
-static Expr *parseFactor(void) {
-        Expr *expr = parseUnary();
-        while (match(TOKEN_SLASH) || match(TOKEN_STAR)) {
+static Expr *
+parse_factor(void)
+{
+        Expr *expr = parse_unary();
+        while (match(TOKEN_SLASH) || match(TOKEN_STAR))
+        {
                 Token *operator = previous();
-                Expr *right = parseUnary();
-                expr = createBinaryExpr(expr, operator, right);
+                Expr *right = parse_unary();
+                expr = binary_expr_create(expr, operator, right);
         }
         return expr;
 }
 
-static Expr *parseUnary(void) {
-        if (match(TOKEN_BANG) || match(TOKEN_MINUS)) {
+static Expr *
+parse_unary(void)
+{
+        if (match(TOKEN_BANG) || match(TOKEN_MINUS))
+        {
                 Token *operator = previous();
-                Expr *right = parseUnary();
-                return createUnaryExpr(operator, right);
+                Expr *right = parse_unary();
+                return unary_expr_create(operator, right);
         }
-        return parsePrimary();
+        return parse_primary();
 }
 
-static Expr *parsePrimary(void) {
-        if (match(TOKEN_FALSE)) {
-                return createLiteralExpr(createBoolObject(false));
-        }
-        else if (match(TOKEN_TRUE)) {
-                return createLiteralExpr(createBoolObject(true));
-        }
-        else if (match(TOKEN_NIL)) {
-                return createLiteralExpr(createNilObject());
-        }
-        else if (match(TOKEN_NUMBER) || match(TOKEN_STRING)) {
-                return createLiteralExpr(previous()->literal);
-        }
-        else if (match(TOKEN_LEFT_PAREN)) {
-                Expr *expression = parseExpression();
-                if (!match(TOKEN_RIGHT_PAREN)) {
+static Expr *
+parse_primary(void)
+{
+        if (match(TOKEN_FALSE))
+                return literal_expr_create(object_create_bool(false));
+        else if (match(TOKEN_TRUE))
+                return literal_expr_create(object_create_bool(true));
+        else if (match(TOKEN_NIL))
+                return literal_expr_create(object_create_nil());
+        else if (match(TOKEN_NUMBER) || match(TOKEN_STRING))
+                return literal_expr_create(previous()->literal);
+        else if (match(TOKEN_LEFT_PAREN))
+        {
+                Expr *expression = parse_expression();
+                if (!match(TOKEN_RIGHT_PAREN))
                         error(peek(), "Expect ')' after expression.");
-                }
-                return createGroupingExpr(expression);
+                return grouping_expr_create(expression);
         }
 
         error(peek(), "Expect expression.");
 }
 
-Expr *parseToExpr(const PtrVector *tokens) {
+Expr *
+parse_to_expr(const PtrVector *tokens)
+{
         init(tokens);
-        if (setjmp(parser.env) == 0) {
-                return parseExpression();
-        }
+        if (setjmp(parser.env) == 0)
+                return parse_expression();
         return NULL;
 }

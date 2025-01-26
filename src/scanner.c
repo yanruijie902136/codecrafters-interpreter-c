@@ -21,53 +21,72 @@ typedef struct {
 
 static Scanner scanner;
 
-static void init(const char *source) {
+static void
+init(const char *source)
+{
         scanner.start = source;
         scanner.current = source;
         scanner.line = 1;
-        scanner.tokens = createPtrVector();
+        scanner.tokens = ptr_vector_create();
         scanner.hasError = false;
 }
 
-static bool isAtEnd(void) {
+static bool
+is_at_end(void)
+{
         return *scanner.current == '\0';
 }
 
-static char advance(void) {
+static char
+advance(void)
+{
         return *scanner.current++;
 }
 
-static char peek(void) {
+static char
+peek(void)
+{
         return *scanner.current;
 }
 
-static char peekNext(void) {
-        return isAtEnd() ? '\0' : *(scanner.current + 1);
+static char
+peek_next(void)
+{
+        return is_at_end() ? '\0' : *(scanner.current + 1);
 }
 
-static bool match(char expected) {
-        if (peek() != expected) {
+static bool
+match(char expected)
+{
+        if (peek() != expected)
                 return false;
-        }
         advance();
         return true;
 }
 
-static char *getLexeme(void) {
+static char *
+get_lexeme(void)
+{
         size_t lexemeLength = scanner.current - scanner.start;
         return xstrndup(scanner.start, lexemeLength);
 }
 
-static void addTokenFull(TokenType type, const char *lexeme, const Object *literal) {
-        Token *token = createToken(type, lexeme, literal, scanner.line);
-        ptrVectorAppend(scanner.tokens, token);
+static void
+add_token_full(TokenType type, const char *lexeme, const Object *literal)
+{
+        Token *token = token_create(type, lexeme, literal, scanner.line);
+        ptr_vector_append(scanner.tokens, token);
 }
 
-static void addToken(TokenType type) {
-        addTokenFull(type, getLexeme(), NULL);
+static void
+add_token(TokenType type)
+{
+        add_token_full(type, get_lexeme(), NULL);
 }
 
-static void error(const char *format, ...) {
+static void
+error(const char *format, ...)
+{
         fprintf(stderr, "[line %zu] Error: ", scanner.line);
         va_list ap;
         va_start(ap, format);
@@ -77,51 +96,61 @@ static void error(const char *format, ...) {
         scanner.hasError = true;
 }
 
-static char *removeQuotes(const char *quotedStr) {
+static char *
+remove_quotes(const char *quotedStr)
+{
         return xstrndup(quotedStr + 1, strlen(quotedStr) - 2);
 }
 
-static void scanString(void) {
-        while (!isAtEnd() && peek() != '\"') {
-                if (peek() == '\n') {
+static void
+scan_string(void)
+{
+        while (!is_at_end() && peek() != '\"')
+        {
+                if (peek() == '\n')
                         scanner.line++;
-                }
                 advance();
         }
 
-        if (isAtEnd()) {
+        if (is_at_end())
+        {
                 error("Unterminated string.");
                 return;
         }
         advance();
 
-        char *lexeme = getLexeme();
-        Object *literal = createStringObject(removeQuotes(lexeme));
-        addTokenFull(TOKEN_STRING, lexeme, literal);
+        char *lexeme = get_lexeme();
+        Object *literal = object_create_string(remove_quotes(lexeme));
+        add_token_full(TOKEN_STRING, lexeme, literal);
 }
 
-static void scanNumber(void) {
-        while (isdigit(peek())) {
+static void
+scan_number(void)
+{
+        while (isdigit(peek()))
                 advance();
-        }
 
-        if (peek() == '.' && isdigit(peekNext())) {
+        if (peek() == '.' && isdigit(peek_next()))
+        {
                 advance();
-                while (isdigit(peek())) {
+                while (isdigit(peek()))
                         advance();
-                }
         }
 
-        char *lexeme = getLexeme();
-        Object *literal = createNumberObject(atof(lexeme));
-        addTokenFull(TOKEN_NUMBER, lexeme, literal);
+        char *lexeme = get_lexeme();
+        Object *literal = object_create_number(atof(lexeme));
+        add_token_full(TOKEN_NUMBER, lexeme, literal);
 }
 
-static bool isAlphaNumeric(char c) {
+static bool
+is_alpha_numeric(char c)
+{
         return c == '_' || isalnum(c);
 }
 
-static TokenType identifierOrKeyword(const char *lexeme) {
+static TokenType
+identifier_or_keyword(const char *lexeme)
+{
         typedef struct {
                 const char *lexeme;
                 TokenType type;
@@ -147,111 +176,119 @@ static TokenType identifierOrKeyword(const char *lexeme) {
         };
         static const size_t NUM_KEYWORDS = sizeof(KEYWORDS) / sizeof(Keyword);
 
-        for (size_t i = 0; i < NUM_KEYWORDS; i++) {
-                if (strcmp(lexeme, KEYWORDS[i].lexeme) == 0) {
+        for (size_t i = 0; i < NUM_KEYWORDS; i++)
+                if (strcmp(lexeme, KEYWORDS[i].lexeme) == 0)
                         return KEYWORDS[i].type;
-                }
-        }
         return TOKEN_IDENTIFIER;
 }
 
-static void scanIdentifier(void) {
-        while (isAlphaNumeric(peek())) {
+static void
+scan_identifier(void)
+{
+        while (is_alpha_numeric(peek()))
                 advance();
-        }
 
-        char *lexeme = getLexeme();
-        addTokenFull(identifierOrKeyword(lexeme), lexeme, NULL);
+        char *lexeme = get_lexeme();
+        add_token_full(identifier_or_keyword(lexeme), lexeme, NULL);
 }
 
-static void scanToken(void) {
+static void
+scan_token(void)
+{
         char c = advance();
-        switch (c) {
+        switch (c)
+        {
         case '(':
-                addToken(TOKEN_LEFT_PAREN);
+                add_token(TOKEN_LEFT_PAREN);
                 break;
         case ')':
-                addToken(TOKEN_RIGHT_PAREN);
+                add_token(TOKEN_RIGHT_PAREN);
                 break;
         case '{':
-                addToken(TOKEN_LEFT_BRACE);
+                add_token(TOKEN_LEFT_BRACE);
                 break;
         case '}':
-                addToken(TOKEN_RIGHT_BRACE);
+                add_token(TOKEN_RIGHT_BRACE);
                 break;
         case ',':
-                addToken(TOKEN_COMMA);
+                add_token(TOKEN_COMMA);
                 break;
         case '.':
-                addToken(TOKEN_DOT);
+                add_token(TOKEN_DOT);
                 break;
         case '-':
-                addToken(TOKEN_MINUS);
+                add_token(TOKEN_MINUS);
                 break;
         case '+':
-                addToken(TOKEN_PLUS);
+                add_token(TOKEN_PLUS);
                 break;
         case ';':
-                addToken(TOKEN_SEMICOLON);
+                add_token(TOKEN_SEMICOLON);
                 break;
         case '*':
-                addToken(TOKEN_STAR);
+                add_token(TOKEN_STAR);
                 break;
         case '=':
-                addToken(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
+                add_token(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
                 break;
         case '!':
-                addToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
+                add_token(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
                 break;
         case '>':
-                addToken(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+                add_token(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
                 break;
         case '<':
-                addToken(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+                add_token(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
                 break;
         case '/':
-                if (!match('/')) {
-                        addToken(TOKEN_SLASH);
+                if (!match('/'))
+                {
+                        add_token(TOKEN_SLASH);
                         break;
                 }
-                while (!isAtEnd() && peek() != '\n') {
+                while (!is_at_end() && peek() != '\n')
                         advance();
-                }
                 break;
         case '\n':
                 scanner.line++;
                 break;
         case '\"':
-                scanString();
+                scan_string();
                 break;
         default:
-                if (isspace(c)) {
+                if (isspace(c))
+                        break;
+                else if (isdigit(c))
+                {
+                        scan_number();
                         break;
                 }
-                else if (isdigit(c)) {
-                        scanNumber();
-                        break;
-                }
-                else if (isAlphaNumeric(c)) {
-                        scanIdentifier();
+                else if (is_alpha_numeric(c))
+                {
+                        scan_identifier();
                         break;
                 }
                 error("Unexpected character: %c", c);
         }
 }
 
-PtrVector *scanTokens(const char *source) {
+PtrVector *
+scan_tokens(const char *source)
+{
         init(source);
 
-        while (!isAtEnd()) {
-                scanToken();
+        while (!is_at_end())
+        {
+                scan_token();
                 scanner.start = scanner.current;
         }
-        addToken(TOKEN_EOF);
+        add_token(TOKEN_EOF);
 
         return scanner.tokens;
 }
 
-bool hasLexicalError(void) {
+bool
+has_lexical_error(void)
+{
         return scanner.hasError;
 }

@@ -5,9 +5,9 @@
 
 typedef struct PtrVector PtrVector;
 
-PtrVector *createPtrVector(void);
-size_t ptrVectorSize(const PtrVector *vector);
-void *ptrVectorAt(const PtrVector *vector, size_t index);
-void ptrVectorAppend(PtrVector *vector, const void *ptr);
+PtrVector *ptr_vector_create(void);
+size_t ptr_vector_size(const PtrVector *vector);
+void *ptr_vector_at(const PtrVector *vector, size_t index);
+void ptr_vector_append(PtrVector *vector, const void *ptr);
 
 #endif

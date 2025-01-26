@@ -54,7 +54,7 @@ typedef struct {
         size_t line;
 } Token;
 
-Token *createToken(TokenType type, const char *lexeme, const Object *literal, size_t line);
-const char *tokenToString(const Token *token);
+Token *token_create(TokenType type, const char *lexeme, const Object *literal, size_t line);
+const char *token_stringify(const Token *token);
 
 #endif

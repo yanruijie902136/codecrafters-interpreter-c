@@ -13,59 +13,59 @@
 #include "lox/token.h"
 #include "lox/xmalloc.h"
 
-static char *readSource(const char *path) {
+static char *read_source(const char *path) {
         FILE *file = fopen(path, "rb");
         if (file == NULL) {
                 err(EX_NOINPUT, "%s", path);
         }
 
         fseek(file, 0, SEEK_END);
-        size_t fileSize = ftell(file);
+        size_t file_size = ftell(file);
         fseek(file, 0, SEEK_SET);
 
-        char *source = xmalloc(fileSize + 1);
-        fread(source, sizeof(char), fileSize, file);
-        source[fileSize] = '\0';
+        char *source = xmalloc(file_size + 1);
+        fread(source, sizeof(char), file_size, file);
+        source[file_size] = '\0';
 
         fclose(file);
 
         return source;
 }
 
-static PtrVector *tokenize(const char *source, bool printTokens) {
-        PtrVector *tokens = scanTokens(source);
+static PtrVector *tokenize(const char *source, bool print_tokens) {
+        PtrVector *tokens = scan_tokens(source);
 
-        if (printTokens) {
-                size_t numTokens = ptrVectorSize(tokens);
-                for (size_t i = 0; i < numTokens; i++) {
-                        Token *token = ptrVectorAt(tokens, i);
-                        printf("%s\n", tokenToString(token));
+        if (print_tokens) {
+                size_t num_tokens = ptr_vector_size(tokens);
+                for (size_t i = 0; i < num_tokens; i++) {
+                        Token *token = ptr_vector_at(tokens, i);
+                        printf("%s\n", token_stringify(token));
                 }
         }
 
-        if (hasLexicalError()) {
+        if (has_lexical_error()) {
                 exit(EX_DATAERR);
         }
 
         return tokens;
 }
 
-static Expr *parse(const PtrVector *tokens, bool printExpr) {
-        Expr *expr = parseToExpr(tokens);
+static Expr *parse(const PtrVector *tokens, bool print_expr) {
+        Expr *expr = parse_to_expr(tokens);
         if (expr == NULL) {
                 exit(EX_DATAERR);
         }
 
-        if (printExpr) {
-                printf("%s\n", exprToString(expr));
+        if (print_expr) {
+                printf("%s\n", expr_stringify(expr));
         }
 
         return expr;
 }
 
 static void evaluate(const Expr *expr) {
-        const Object *object = interpretExpr(expr);
-        printf("%s\n", objectToString(object, true));
+        const Object *object = interpret_expr(expr);
+        printf("%s\n", object_stringify(object, true));
 }
 
 int main(int argc, char *argv[]) {
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
                 exit(EX_USAGE);
         }
 
-        const char *source = readSource(argv[2]);
+        const char *source = read_source(argv[2]);
 
         const char *command = argv[1];
         if (strcmp(command, "tokenize") == 0) {

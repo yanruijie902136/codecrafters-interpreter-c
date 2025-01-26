@@ -4,7 +4,9 @@
 
 #include <stdio.h>
 
-Token *createToken(TokenType type, const char *lexeme, const Object *literal, size_t line) {
+Token *
+token_create(TokenType type, const char *lexeme, const Object *literal, size_t line)
+{
         Token *token = xmalloc(sizeof(Token));
         token->type = type;
         token->lexeme = lexeme;
@@ -13,8 +15,11 @@ Token *createToken(TokenType type, const char *lexeme, const Object *literal, si
         return token;
 }
 
-static const char *tokenTypeToString(TokenType type) {
-        switch (type) {
+static const char *
+token_type_stringify(TokenType type)
+{
+        switch (type)
+        {
         case TOKEN_AND:
                 return "AND";
         case TOKEN_BANG:
@@ -96,13 +101,15 @@ static const char *tokenTypeToString(TokenType type) {
         }
 }
 
-const char *tokenToString(const Token *token) {
-        const char *typeStr = tokenTypeToString(token->type);
-        const char *literalStr = (
-                token->literal == NULL ? "null" : objectToString(token->literal, false)
+const char *
+token_stringify(const Token *token)
+{
+        const char *type_str = token_type_stringify(token->type);
+        const char *literal_str = (
+                token->literal == NULL ? "null" : object_stringify(token->literal, false)
         );
 
         static char str[1024];
-        snprintf(str, sizeof(str), "%s %s %s", typeStr, token->lexeme, literalStr);
+        snprintf(str, sizeof(str), "%s %s %s", type_str, token->lexeme, literal_str);
         return str;
 }

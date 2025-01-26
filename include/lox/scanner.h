@@ -3,7 +3,7 @@
 
 #include "lox/ptr_vector.h"
 
-PtrVector *scanTokens(const char *source);
-bool hasLexicalError(void);
+PtrVector *scan_tokens(const char *source);
+bool has_lexical_error(void);
 
 #endif

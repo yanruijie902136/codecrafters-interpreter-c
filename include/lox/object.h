@@ -13,14 +13,14 @@ typedef struct {
         const void *data;
 } Object;
 
-Object *createBoolObject(bool boolean);
-Object *createNilObject(void);
-Object *createNumberObject(double num);
-Object *createStringObject(const char *str);
+Object *object_create_bool(bool boolean);
+Object *object_create_nil(void);
+Object *object_create_number(double num);
+Object *object_create_string(const char *str);
 
-Object *copyObject(const Object *object);
-void freeObject(Object *object);
+Object *object_copy(const Object *object);
+void object_destroy(Object *object);
 
-const char *objectToString(const Object *object, bool minPrecision);
+const char *object_stringify(const Object *object, bool min_precision);
 
 #endif
