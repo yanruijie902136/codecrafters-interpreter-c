@@ -4,5 +4,6 @@
 #include "lox/ptr_vector.h"
 
 PtrVector *scanTokens(const char *source);
+bool hasLexicalError(void);
 
 #endif

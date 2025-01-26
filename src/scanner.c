@@ -3,12 +3,15 @@
 #include "lox/token.h"
 #include "lox/xmalloc.h"
 
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct {
         const char *start;
         const char *current;
         PtrVector *tokens;
+        bool hasError;
 } Scanner;
 
 static Scanner scanner;
@@ -17,6 +20,7 @@ static void init(const char *source) {
         scanner.start = source;
         scanner.current = source;
         scanner.tokens = createPtrVector();
+        scanner.hasError = false;
 }
 
 static bool isAtEnd(void) {
@@ -35,6 +39,16 @@ static char *getLexeme(void) {
 static void addToken(TokenType type) {
         Token *token = createToken(type, getLexeme());
         ptrVectorAppend(scanner.tokens, token);
+}
+
+static void error(const char *format, ...) {
+        fprintf(stderr, "[line 1] Error: ");
+        va_list ap;
+        va_start(ap, format);
+        vfprintf(stderr, format, ap);
+        va_end(ap);
+        fprintf(stderr, "\n");
+        scanner.hasError = true;
 }
 
 static void scanToken(void) {
@@ -70,6 +84,8 @@ static void scanToken(void) {
         case '*':
                 addToken(TOKEN_STAR);
                 break;
+        default:
+                error("Unexpected character: %c", c);
         }
 }
 
@@ -83,4 +99,8 @@ PtrVector *scanTokens(const char *source) {
         addToken(TOKEN_EOF);
 
         return scanner.tokens;
+}
+
+bool hasLexicalError(void) {
+        return scanner.hasError;
 }

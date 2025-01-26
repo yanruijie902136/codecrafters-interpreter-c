@@ -36,6 +36,10 @@ static void tokenize(const char *source) {
                 Token *token = ptrVectorAt(tokens, i);
                 printf("%s\n", tokenToString(token));
         }
+
+        if (hasLexicalError()) {
+                exit(EX_DATAERR);
+        }
 }
 
 int main(int argc, char *argv[]) {
