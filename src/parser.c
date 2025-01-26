@@ -44,11 +44,22 @@ static bool match(TokenType type) {
 }
 
 static Expr *parseExpression(void);
+static Expr *parseFactor(void);
 static Expr *parseUnary(void);
 static Expr *parsePrimary(void);
 
 static Expr *parseExpression(void) {
-        return parseUnary();
+        return parseFactor();
+}
+
+static Expr *parseFactor(void) {
+        Expr *expr = parseUnary();
+        while (match(TOKEN_SLASH) || match(TOKEN_STAR)) {
+                Token *operator = previous();
+                Expr *right = parseUnary();
+                expr = createBinaryExpr(expr, operator, right);
+        }
+        return expr;
 }
 
 static Expr *parseUnary(void) {

@@ -5,6 +5,7 @@
 #include "lox/token.h"
 
 typedef enum {
+        EXPR_BINARY,
         EXPR_GROUPING,
         EXPR_LITERAL,
         EXPR_UNARY,
@@ -14,6 +15,12 @@ typedef struct {
         ExprType type;
         const void *data;
 } Expr;
+
+typedef struct {
+        const Expr *left;
+        const Token *operator;
+        const Expr *right;
+} BinaryExpr;
 
 typedef struct {
         const Expr *expression;
@@ -28,6 +35,7 @@ typedef struct {
         const Expr *right;
 } UnaryExpr;
 
+Expr *createBinaryExpr(const Expr *left, const Token *operator, const Expr *right);
 Expr *createGroupingExpr(const Expr *expression);
 Expr *createLiteralExpr(const Object *value);
 Expr *createUnaryExpr(const Token *operator, const Expr *right);

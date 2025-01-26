@@ -13,6 +13,14 @@ static Expr *createExpr(ExprType type, const void *data) {
         return expr;
 }
 
+Expr *createBinaryExpr(const Expr *left, const Token *operator, const Expr *right) {
+        BinaryExpr *binaryExpr = xmalloc(sizeof(BinaryExpr));
+        binaryExpr->left = left;
+        binaryExpr->operator = operator;
+        binaryExpr->right = right;
+        return createExpr(EXPR_BINARY, binaryExpr);
+}
+
 Expr *createGroupingExpr(const Expr *expression) {
         GroupingExpr *groupingExpr = xmalloc(sizeof(GroupingExpr));
         groupingExpr->expression = expression;
@@ -45,6 +53,14 @@ static void appendString(const char *format, ...) {
 
 static void stringifyExpr(const Expr *expr);
 
+static void stringifyBinaryExpr(const BinaryExpr *binaryExpr) {
+        appendString("(%s ", binaryExpr->operator->lexeme);
+        stringifyExpr(binaryExpr->left);
+        appendString(" ");
+        stringifyExpr(binaryExpr->right);
+        appendString(")");
+}
+
 static void stringifyGroupingExpr(const GroupingExpr *groupingExpr) {
         appendString("(group ");
         stringifyExpr(groupingExpr->expression);
@@ -63,6 +79,9 @@ static void stringifyUnaryExpr(const UnaryExpr *unaryExpr) {
 
 static void stringifyExpr(const Expr *expr) {
         switch (expr->type) {
+        case EXPR_BINARY:
+                stringifyBinaryExpr(expr->data);
+                break;
         case EXPR_GROUPING:
                 stringifyGroupingExpr(expr->data);
                 break;
