@@ -1,12 +1,14 @@
 #include "lox/token.h"
+#include "lox/object.h"
 #include "lox/xmalloc.h"
 
 #include <stdio.h>
 
-Token *createToken(TokenType type, const char *lexeme) {
+Token *createToken(TokenType type, const char *lexeme, const Object *literal) {
         Token *token = xmalloc(sizeof(Token));
         token->type = type;
         token->lexeme = lexeme;
+        token->literal = literal;
         return token;
 }
 
@@ -52,11 +54,16 @@ static const char *tokenTypeToString(TokenType type) {
                 return "SLASH";
         case TOKEN_STAR:
                 return "STAR";
+        case TOKEN_STRING:
+                return "STRING";
         }
 }
 
 const char *tokenToString(const Token *token) {
+        const char *typeStr = tokenTypeToString(token->type);
+        const char *literalStr = token->literal == NULL ? "null" : objectToString(token->literal);
+
         static char str[1024];
-        snprintf(str, sizeof(str), "%s %s null", tokenTypeToString(token->type), token->lexeme);
+        snprintf(str, sizeof(str), "%s %s %s", typeStr, token->lexeme, literalStr);
         return str;
 }

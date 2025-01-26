@@ -1,4 +1,5 @@
 #include "lox/scanner.h"
+#include "lox/object.h"
 #include "lox/ptr_vector.h"
 #include "lox/token.h"
 #include "lox/xmalloc.h"
@@ -7,6 +8,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 typedef struct {
         const char *start;
@@ -51,9 +53,13 @@ static char *getLexeme(void) {
         return xstrndup(scanner.start, lexemeLength);
 }
 
-static void addToken(TokenType type) {
-        Token *token = createToken(type, getLexeme());
+static void addTokenFull(TokenType type, const char *lexeme, const Object *literal) {
+        Token *token = createToken(type, lexeme, literal);
         ptrVectorAppend(scanner.tokens, token);
+}
+
+static void addToken(TokenType type) {
+        addTokenFull(type, getLexeme(), NULL);
 }
 
 static void error(const char *format, ...) {
@@ -64,6 +70,29 @@ static void error(const char *format, ...) {
         va_end(ap);
         fprintf(stderr, "\n");
         scanner.hasError = true;
+}
+
+static char *removeQuotes(const char *quotedStr) {
+        return xstrndup(quotedStr + 1, strlen(quotedStr) - 2);
+}
+
+static void scanString(void) {
+        while (!isAtEnd() && peek() != '\"') {
+                if (peek() == '\n') {
+                        scanner.line++;
+                }
+                advance();
+        }
+
+        if (isAtEnd()) {
+                error("Unterminated string.");
+                return;
+        }
+        advance();
+
+        char *lexeme = getLexeme();
+        Object *literal = createStringObject(removeQuotes(lexeme));
+        addTokenFull(TOKEN_STRING, lexeme, literal);
 }
 
 static void scanToken(void) {
@@ -122,6 +151,9 @@ static void scanToken(void) {
                 break;
         case '\n':
                 scanner.line++;
+                break;
+        case '\"':
+                scanString();
                 break;
         default:
                 if (isspace(c)) {

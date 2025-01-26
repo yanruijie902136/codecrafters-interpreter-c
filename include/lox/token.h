@@ -1,6 +1,8 @@
 #ifndef CODECRAFTERS_INTERPRETER_TOKEN_H
 #define CODECRAFTERS_INTERPRETER_TOKEN_H
 
+#include "lox/object.h"
+
 typedef enum {
         TOKEN_BANG,
         TOKEN_BANG_EQUAL,
@@ -22,14 +24,16 @@ typedef enum {
         TOKEN_SEMICOLON,
         TOKEN_SLASH,
         TOKEN_STAR,
+        TOKEN_STRING,
 } TokenType;
 
 typedef struct {
         TokenType type;
         const char *lexeme;
+        const Object *literal;
 } Token;
 
-Token *createToken(TokenType type, const char *lexeme);
+Token *createToken(TokenType type, const char *lexeme, const Object *literal);
 const char *tokenToString(const Token *token);
 
 #endif
