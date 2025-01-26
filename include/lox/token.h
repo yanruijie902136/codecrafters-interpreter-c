@@ -2,6 +2,8 @@
 #define CODECRAFTERS_INTERPRETER_TOKEN_H
 
 typedef enum {
+        TOKEN_BANG,
+        TOKEN_BANG_EQUAL,
         TOKEN_COMMA,
         TOKEN_DOT,
         TOKEN_EOF,

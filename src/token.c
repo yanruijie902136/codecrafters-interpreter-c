@@ -12,6 +12,10 @@ Token *createToken(TokenType type, const char *lexeme) {
 
 static const char *tokenTypeToString(TokenType type) {
         switch (type) {
+        case TOKEN_BANG:
+                return "BANG";
+        case TOKEN_BANG_EQUAL:
+                return "BANG_EQUAL";
         case TOKEN_COMMA:
                 return "COMMA";
         case TOKEN_DOT:
