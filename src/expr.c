@@ -12,6 +12,12 @@ static Expr *createExpr(ExprType type, const void *data) {
         return expr;
 }
 
+Expr *createGroupingExpr(const Expr *expression) {
+        GroupingExpr *groupingExpr = xmalloc(sizeof(GroupingExpr));
+        groupingExpr->expression = expression;
+        return createExpr(EXPR_GROUPING, groupingExpr);
+}
+
 Expr *createLiteralExpr(const Object *value) {
         LiteralExpr *literalExpr = xmalloc(sizeof(LiteralExpr));
         literalExpr->value = value;
@@ -26,12 +32,23 @@ static void appendString(const char *s) {
         p += strlen(s);
 }
 
+static void stringifyExpr(const Expr *expr);
+
+static void stringifyGroupingExpr(const GroupingExpr *groupingExpr) {
+        appendString("(group ");
+        stringifyExpr(groupingExpr->expression);
+        appendString(")");
+}
+
 static void stringifyLiteralExpr(const LiteralExpr *literalExpr) {
         appendString(objectToString(literalExpr->value));
 }
 
 static void stringifyExpr(const Expr *expr) {
         switch (expr->type) {
+        case EXPR_GROUPING:
+                stringifyGroupingExpr(expr->data);
+                break;
         case EXPR_LITERAL:
                 stringifyLiteralExpr(expr->data);
                 break;

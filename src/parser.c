@@ -63,6 +63,11 @@ static Expr *parsePrimary(void) {
         else if (match(TOKEN_NUMBER) || match(TOKEN_STRING)) {
                 return createLiteralExpr(previous()->literal);
         }
+        else if (match(TOKEN_LEFT_PAREN)) {
+                Expr *expression = parseExpression();
+                advance();
+                return createGroupingExpr(expression);
+        }
 
         return NULL;
 }
