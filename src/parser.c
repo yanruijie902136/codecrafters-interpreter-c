@@ -92,6 +92,7 @@ static Stmt *parse_var_declaration(void);
 static Stmt *parse_statement(void);
 static PtrVector *parse_block(void);
 static Stmt *parse_expression_statement(void);
+static Stmt *parse_for_statement(void);
 static Stmt *parse_if_statement(void);
 static Stmt *parse_print_statement(void);
 static Stmt *parse_while_statement(void);
@@ -269,14 +270,17 @@ parse_var_declaration(void)
 static Stmt *
 parse_statement(void)
 {
+        if (match(TOKEN_LEFT_BRACE))
+                return block_stmt_create(parse_block());
+        if (match(TOKEN_FOR))
+                return parse_for_statement();
         if (match(TOKEN_IF))
                 return parse_if_statement();
         if (match(TOKEN_PRINT))
                 return parse_print_statement();
         if (match(TOKEN_WHILE))
                 return parse_while_statement();
-        if (match(TOKEN_LEFT_BRACE))
-                return block_stmt_create(parse_block());
+
         return parse_expression_statement();
 }
 
@@ -300,6 +304,57 @@ parse_expression_statement(void)
         if (!match(TOKEN_SEMICOLON))
                 error(peek(), "Expect ';' after expression.");
         return expression_stmt_create(expression);
+}
+
+static Stmt *
+parse_for_statement(void)
+{
+        if (!match(TOKEN_LEFT_PAREN))
+                error(peek(), "Expect '(' after 'for'.");
+
+        Stmt *initializer;
+        if (match(TOKEN_SEMICOLON))
+                initializer = NULL;
+        else if (match(TOKEN_VAR))
+                initializer = parse_var_declaration();
+        else
+                initializer = parse_expression_statement();
+
+        Expr *condition = NULL;
+        if (peek()->type != TOKEN_SEMICOLON)
+                condition = parse_expression();
+        if (!match(TOKEN_SEMICOLON))
+                error(peek(), "Expect ';' after loop condition.");
+
+        Expr *increment = NULL;
+        if (peek()->type != TOKEN_RIGHT_PAREN)
+                increment = parse_expression();
+        if (!match(TOKEN_RIGHT_PAREN))
+                error(peek(), "Expect ')' after for clauses.");
+
+        Stmt *body = parse_statement();
+
+        if (increment != NULL)
+        {
+                PtrVector *statements = ptr_vector_create();
+                ptr_vector_append(statements, body);
+                ptr_vector_append(statements, expression_stmt_create(increment));
+                body = block_stmt_create(statements);
+        }
+
+        if (condition == NULL)
+                condition = literal_expr_create(object_create_bool(true));
+        body = while_stmt_create(condition, body);
+
+        if (initializer != NULL)
+        {
+                PtrVector *statements = ptr_vector_create();
+                ptr_vector_append(statements, initializer);
+                ptr_vector_append(statements, body);
+                body = block_stmt_create(statements);
+        }
+
+        return body;
 }
 
 static Stmt *
