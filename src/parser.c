@@ -77,6 +77,7 @@ error(const Token *token, const char *format, ...)
 }
 
 static Expr *parse_expression(void);
+static Expr *parse_assignment(void);
 static Expr *parse_equality(void);
 static Expr *parse_comparison(void);
 static Expr *parse_term(void);
@@ -93,7 +94,29 @@ static Stmt *parse_print_statement(void);
 static Expr *
 parse_expression(void)
 {
-        return parse_equality();
+        return parse_assignment();
+}
+
+static Expr *
+parse_assignment(void)
+{
+        Expr *expr = parse_equality();
+
+        if (match(TOKEN_EQUAL))
+        {
+                Token *equals = previous();
+                Expr *value = parse_assignment();
+
+                if (expr->type == EXPR_VARIABLE)
+                {
+                        const Token *name = ((VariableExpr *)expr->data)->name;
+                        return assign_expr_create(name, value);
+                }
+
+                error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
 }
 
 static Expr *

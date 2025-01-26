@@ -62,6 +62,21 @@ environment_define(Environment *environment, const char *name, const Object *obj
         }
 }
 
+int
+environment_assign(Environment *environment, const char *name, const Object *object)
+{
+        Node *target_node = node_create(name, NULL);
+        Node **res = tfind(target_node, &environment->root, node_compare);
+        if (res == NULL)
+        {
+                node_destroy(target_node);
+                return -1;
+        }
+        object_destroy((Object *)(*res)->object);
+        (*res)->object = object;
+        return 0;
+}
+
 Object *
 environment_get(const Environment *environment, const char *name)
 {

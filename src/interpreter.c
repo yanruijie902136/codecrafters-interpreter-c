@@ -28,6 +28,21 @@ init(void)
 
 static Object *evaluate_expr(const Expr *expr);
 
+static Object *
+evaluate_assign_expr(const AssignExpr *assign_expr)
+{
+        Object *object = evaluate_expr(assign_expr->value);
+
+        const char *name = assign_expr->name->lexeme;
+        if (environment_assign(interpreter.environment, name, object) < 0)
+        {
+                fprintf(stderr, "Undefined variable '%s'.\n", name);
+                longjmp(interpreter.env, 1);
+        }
+
+        return object_copy(object);
+}
+
 static void
 check_number_operands(const Object *left, const Object *right, double *num1, double *num2)
 {
@@ -207,6 +222,8 @@ evaluate_expr(const Expr *expr)
 {
         switch (expr->type)
         {
+        case EXPR_ASSIGN:
+                return evaluate_assign_expr(expr->data);
         case EXPR_BINARY:
                 return evaluate_binary_expr(expr->data);
         case EXPR_GROUPING:

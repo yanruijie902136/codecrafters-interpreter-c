@@ -16,6 +16,15 @@ expr_create(ExprType type, const void *data)
 }
 
 Expr *
+assign_expr_create(const Token *name, const Expr *value)
+{
+        AssignExpr *assign_expr = xmalloc(sizeof(AssignExpr));
+        assign_expr->name = name;
+        assign_expr->value = value;
+        return expr_create(EXPR_ASSIGN, assign_expr);
+}
+
+Expr *
 binary_expr_create(const Expr *left, const Token *operator, const Expr *right)
 {
         BinaryExpr *binary_expr = xmalloc(sizeof(BinaryExpr));
