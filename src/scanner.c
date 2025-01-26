@@ -11,6 +11,7 @@
 typedef struct {
         const char *start;
         const char *current;
+        size_t line;
         PtrVector *tokens;
         bool hasError;
 } Scanner;
@@ -20,6 +21,7 @@ static Scanner scanner;
 static void init(const char *source) {
         scanner.start = source;
         scanner.current = source;
+        scanner.line = 1;
         scanner.tokens = createPtrVector();
         scanner.hasError = false;
 }
@@ -55,7 +57,7 @@ static void addToken(TokenType type) {
 }
 
 static void error(const char *format, ...) {
-        fprintf(stderr, "[line 1] Error: ");
+        fprintf(stderr, "[line %zu] Error: ", scanner.line);
         va_list ap;
         va_start(ap, format);
         vfprintf(stderr, format, ap);
@@ -117,6 +119,9 @@ static void scanToken(void) {
                 while (!isAtEnd() && peek() != '\n') {
                         advance();
                 }
+                break;
+        case '\n':
+                scanner.line++;
                 break;
         default:
                 if (isspace(c)) {
