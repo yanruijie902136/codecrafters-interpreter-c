@@ -14,6 +14,10 @@ static const char *tokenTypeToString(TokenType type) {
         switch (type) {
         case TOKEN_EOF:
                 return "EOF";
+        case TOKEN_LEFT_PAREN:
+                return "LEFT_PAREN";
+        case TOKEN_RIGHT_PAREN:
+                return "RIGHT_PAREN";
         }
 }
 

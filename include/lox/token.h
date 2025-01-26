@@ -3,6 +3,8 @@
 
 typedef enum {
         TOKEN_EOF,
+        TOKEN_LEFT_PAREN,
+        TOKEN_RIGHT_PAREN,
 } TokenType;
 
 typedef struct {

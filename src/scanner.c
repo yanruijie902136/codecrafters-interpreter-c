@@ -19,6 +19,14 @@ static void init(const char *source) {
         scanner.tokens = createPtrVector();
 }
 
+static bool isAtEnd(void) {
+        return *scanner.current == '\0';
+}
+
+static char advance(void) {
+        return *scanner.current++;
+}
+
 static char *getLexeme(void) {
         size_t lexemeLength = scanner.current - scanner.start;
         return xstrndup(scanner.start, lexemeLength);
@@ -29,9 +37,25 @@ static void addToken(TokenType type) {
         ptrVectorAppend(scanner.tokens, token);
 }
 
+static void scanToken(void) {
+        char c = advance();
+        switch (c) {
+        case '(':
+                addToken(TOKEN_LEFT_PAREN);
+                break;
+        case ')':
+                addToken(TOKEN_RIGHT_PAREN);
+                break;
+        }
+}
+
 PtrVector *scanTokens(const char *source) {
         init(source);
 
+        while (!isAtEnd()) {
+                scanToken();
+                scanner.start = scanner.current;
+        }
         addToken(TOKEN_EOF);
 
         return scanner.tokens;
