@@ -5,6 +5,8 @@ typedef enum {
         TOKEN_COMMA,
         TOKEN_DOT,
         TOKEN_EOF,
+        TOKEN_EQUAL,
+        TOKEN_EQUAL_EQUAL,
         TOKEN_LEFT_BRACE,
         TOKEN_LEFT_PAREN,
         TOKEN_MINUS,

@@ -18,6 +18,10 @@ static const char *tokenTypeToString(TokenType type) {
                 return "DOT";
         case TOKEN_EOF:
                 return "EOF";
+        case TOKEN_EQUAL:
+                return "EQUAL";
+        case TOKEN_EQUAL_EQUAL:
+                return "EQUAL_EQUAL";
         case TOKEN_LEFT_BRACE:
                 return "LEFT_BRACE";
         case TOKEN_LEFT_PAREN:
