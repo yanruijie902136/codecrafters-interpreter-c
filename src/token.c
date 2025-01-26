@@ -48,6 +48,8 @@ static const char *tokenTypeToString(TokenType type) {
                 return "RIGHT_PAREN";
         case TOKEN_SEMICOLON:
                 return "SEMICOLON";
+        case TOKEN_SLASH:
+                return "SLASH";
         case TOKEN_STAR:
                 return "STAR";
         }

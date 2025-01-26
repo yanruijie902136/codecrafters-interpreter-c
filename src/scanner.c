@@ -108,6 +108,15 @@ static void scanToken(void) {
         case '<':
                 addToken(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
                 break;
+        case '/':
+                if (!match('/')) {
+                        addToken(TOKEN_SLASH);
+                        break;
+                }
+                while (!isAtEnd() && peek() != '\n') {
+                        advance();
+                }
+                break;
         default:
                 error("Unexpected character: %c", c);
         }

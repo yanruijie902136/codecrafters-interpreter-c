@@ -20,6 +20,7 @@ typedef enum {
         TOKEN_RIGHT_BRACE,
         TOKEN_RIGHT_PAREN,
         TOKEN_SEMICOLON,
+        TOKEN_SLASH,
         TOKEN_STAR,
 } TokenType;
 
