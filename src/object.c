@@ -11,6 +11,14 @@ static Object *createObject(ObjectType type, const void *data) {
         return object;
 }
 
+Object *createBoolObject(bool boolean) {
+        return createObject(OBJECT_BOOL, xmemdup(&boolean, sizeof(boolean)));
+}
+
+Object *createNilObject(void) {
+        return createObject(OBJECT_NIL, NULL);
+}
+
 Object *createNumberObject(double num) {
         return createObject(OBJECT_NUMBER, xmemdup(&num, sizeof(num)));
 }
@@ -39,6 +47,10 @@ static const char *numberToString(double num) {
 
 const char *objectToString(const Object *object) {
         switch (object->type) {
+        case OBJECT_BOOL:
+                return *(const bool *)object->data ? "true" : "false";
+        case OBJECT_NIL:
+                return "nil";
         case OBJECT_NUMBER:
                 return numberToString(*(const double *)object->data);
         case OBJECT_STRING:

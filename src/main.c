@@ -4,6 +4,8 @@
 #include <string.h>
 #include <sysexits.h>
 
+#include "lox/expr.h"
+#include "lox/parser.h"
 #include "lox/scanner.h"
 #include "lox/ptr_vector.h"
 #include "lox/token.h"
@@ -28,18 +30,27 @@ static char *readSource(const char *path) {
         return source;
 }
 
-static void tokenize(const char *source) {
+static PtrVector *tokenize(const char *source, bool printTokens) {
         PtrVector *tokens = scanTokens(source);
 
-        size_t numTokens = ptrVectorSize(tokens);
-        for (size_t i = 0; i < numTokens; i++) {
-                Token *token = ptrVectorAt(tokens, i);
-                printf("%s\n", tokenToString(token));
+        if (printTokens) {
+                size_t numTokens = ptrVectorSize(tokens);
+                for (size_t i = 0; i < numTokens; i++) {
+                        Token *token = ptrVectorAt(tokens, i);
+                        printf("%s\n", tokenToString(token));
+                }
         }
 
         if (hasLexicalError()) {
                 exit(EX_DATAERR);
         }
+
+        return tokens;
+}
+
+static void parse(const PtrVector *tokens) {
+        Expr *expr = parseToExpr(tokens);
+        printf("%s\n", exprToString(expr));
 }
 
 int main(int argc, char *argv[]) {
@@ -52,7 +63,10 @@ int main(int argc, char *argv[]) {
 
         const char *command = argv[1];
         if (strcmp(command, "tokenize") == 0) {
-                tokenize(source);
+                tokenize(source, true);
+        }
+        else if (strcmp(command, "parse") == 0) {
+                parse(tokenize(source, false));
         }
         else {
                 errx(EX_USAGE, "unknown command: %s", command);
