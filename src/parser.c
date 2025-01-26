@@ -60,7 +60,7 @@ static Expr *parsePrimary(void) {
         else if (match(TOKEN_NIL)) {
                 return createLiteralExpr(createNilObject());
         }
-        else if (match(TOKEN_NUMBER)) {
+        else if (match(TOKEN_NUMBER) || match(TOKEN_STRING)) {
                 return createLiteralExpr(previous()->literal);
         }
 
