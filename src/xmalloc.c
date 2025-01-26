@@ -27,6 +27,14 @@ void *xmemdup(const void *ptr, size_t size) {
         return ptr2;
 }
 
+char *xstrdup(const char *str) {
+        char *str2 = strdup(str);
+        if (str2 == NULL) {
+                err(EX_OSERR, "strdup");
+        }
+        return str2;
+}
+
 char *xstrndup(const char *str, size_t n) {
         char *str2 = strndup(str, n);
         if (str2 == NULL) {

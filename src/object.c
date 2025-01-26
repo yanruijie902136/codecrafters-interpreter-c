@@ -2,6 +2,7 @@
 #include "lox/xmalloc.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static Object *createObject(ObjectType type, const void *data) {
@@ -25,6 +26,24 @@ Object *createNumberObject(double num) {
 
 Object *createStringObject(const char *str) {
         return createObject(OBJECT_STRING, str);
+}
+
+Object *copyObject(const Object *object) {
+        switch (object->type) {
+        case OBJECT_BOOL:
+                return createObject(OBJECT_BOOL, xmemdup(object->data, sizeof(bool)));
+        case OBJECT_NIL:
+                return createObject(OBJECT_NIL, NULL);
+        case OBJECT_NUMBER:
+                return createObject(OBJECT_NUMBER, xmemdup(object->data, sizeof(double)));
+        case OBJECT_STRING:
+                return createObject(OBJECT_STRING, xstrdup(object->data));
+        }
+}
+
+void freeObject(Object *object) {
+        free((void *)object->data);
+        free(object);
 }
 
 static const char *numberToString(double num, bool minPrecision) {

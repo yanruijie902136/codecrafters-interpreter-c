@@ -4,6 +4,6 @@
 #include "lox/expr.h"
 #include "lox/object.h"
 
-const Object *interpretExpr(const Expr *expr);
+Object *interpretExpr(const Expr *expr);
 
 #endif
