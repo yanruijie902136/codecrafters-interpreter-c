@@ -26,10 +26,18 @@ static const char *tokenTypeToString(TokenType type) {
                 return "EQUAL";
         case TOKEN_EQUAL_EQUAL:
                 return "EQUAL_EQUAL";
+        case TOKEN_GREATER:
+                return "GREATER";
+        case TOKEN_GREATER_EQUAL:
+                return "GREATER_EQUAL";
         case TOKEN_LEFT_BRACE:
                 return "LEFT_BRACE";
         case TOKEN_LEFT_PAREN:
                 return "LEFT_PAREN";
+        case TOKEN_LESS:
+                return "LESS";
+        case TOKEN_LESS_EQUAL:
+                return "LESS_EQUAL";
         case TOKEN_MINUS:
                 return "MINUS";
         case TOKEN_PLUS:

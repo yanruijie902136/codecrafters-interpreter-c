@@ -102,6 +102,12 @@ static void scanToken(void) {
         case '!':
                 addToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
                 break;
+        case '>':
+                addToken(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+                break;
+        case '<':
+                addToken(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+                break;
         default:
                 error("Unexpected character: %c", c);
         }
