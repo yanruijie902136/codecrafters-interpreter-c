@@ -37,15 +37,29 @@ node_compare(const void *v1, const void *v2)
 }
 
 struct Environment {
+        Environment *enclosing;
         void *root;
 };
 
 Environment *
-environment_create(void)
+environment_create(Environment *enclosing)
 {
         Environment *environment = xmalloc(sizeof(Environment));
+        environment->enclosing = enclosing;
         environment->root = NULL;
         return environment;
+}
+
+void
+environment_destroy(Environment *environment)
+{
+        while (environment->root != NULL)
+        {
+                Node *node = *(Node **)environment->root;
+                tdelete(node, &environment->root, node_compare);
+                node_destroy(node);
+        }
+        free(environment);
 }
 
 void
@@ -67,14 +81,20 @@ environment_assign(Environment *environment, const char *name, const Object *obj
 {
         Node *target_node = node_create(name, NULL);
         Node **res = tfind(target_node, &environment->root, node_compare);
-        if (res == NULL)
+        node_destroy(target_node);
+
+        if (res != NULL)
         {
-                node_destroy(target_node);
-                return -1;
+                object_destroy((Object *)(*res)->object);
+                (*res)->object = object;
+                return 0;
+
         }
-        object_destroy((Object *)(*res)->object);
-        (*res)->object = object;
-        return 0;
+
+        if (environment->enclosing != NULL)
+                return environment_assign(environment->enclosing, name, object);
+
+        return -1;
 }
 
 Object *
@@ -83,5 +103,12 @@ environment_get(const Environment *environment, const char *name)
         Node *target_node = node_create(name, NULL);
         Node **res = tfind(target_node, &environment->root, node_compare);
         node_destroy(target_node);
-        return res == NULL ? NULL : object_copy((*res)->object);
+
+        if (res != NULL)
+                return object_copy((*res)->object);
+
+        if (environment->enclosing != NULL)
+                return environment_get(environment->enclosing, name);
+
+        return NULL;
 }

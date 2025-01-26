@@ -23,7 +23,7 @@ static Interpreter interpreter;
 static void
 init(void)
 {
-        interpreter.environment = environment_create();
+        interpreter.environment = environment_create(NULL);
 }
 
 static Object *evaluate_expr(const Expr *expr);
@@ -250,6 +250,30 @@ interpret_expr(const Expr *expr)
 static void execute_stmt(const Stmt *stmt);
 
 static void
+execute_block(const PtrVector *statements, Environment *environment)
+{
+        Environment *previous = interpreter.environment;
+        interpreter.environment = environment;
+
+        size_t num_statements = ptr_vector_size(statements);
+        for (size_t i = 0; i < num_statements; i++)
+        {
+                Stmt *statement = ptr_vector_at(statements, i);
+                execute_stmt(statement);
+        }
+
+        environment_destroy(interpreter.environment);
+        interpreter.environment = previous;
+}
+
+static void
+execute_block_stmt(const BlockStmt *block_stmt)
+{
+        Environment *new_environment = environment_create(interpreter.environment);
+        execute_block(block_stmt->statements, new_environment);
+}
+
+static void
 execute_expression_stmt(const ExpressionStmt *expression_stmt)
 {
         Object *object = evaluate_expr(expression_stmt->expression);
@@ -282,6 +306,9 @@ execute_stmt(const Stmt *stmt)
 {
         switch (stmt->type)
         {
+        case STMT_BLOCK:
+                execute_block_stmt(stmt->data);
+                break;
         case STMT_EXPRESSION:
                 execute_expression_stmt(stmt->data);
                 break;

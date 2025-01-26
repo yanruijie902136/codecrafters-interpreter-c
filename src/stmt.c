@@ -1,4 +1,5 @@
 #include "lox/stmt.h"
+#include "lox/ptr_vector.h"
 #include "lox/xmalloc.h"
 
 static Stmt *
@@ -8,6 +9,14 @@ stmt_create(StmtType type, const void *data)
         stmt->type = type;
         stmt->data = data;
         return stmt;
+}
+
+Stmt *
+block_stmt_create(const PtrVector *statements)
+{
+        BlockStmt *block_stmt = xmalloc(sizeof(BlockStmt));
+        block_stmt->statements = statements;
+        return stmt_create(STMT_BLOCK, block_stmt);
 }
 
 Stmt *
