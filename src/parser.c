@@ -88,6 +88,7 @@ static Expr *parse_primary(void);
 static Stmt *parse_declaration(void);
 static Stmt *parse_var_declaration(void);
 static Stmt *parse_statement(void);
+static Stmt *parse_if_statement(void);
 static Stmt *parse_expression_statement(void);
 static PtrVector *parse_block(void);
 static Stmt *parse_print_statement(void);
@@ -239,11 +240,32 @@ parse_var_declaration(void)
 static Stmt *
 parse_statement(void)
 {
+        if (match(TOKEN_IF))
+                return parse_if_statement();
         if (match(TOKEN_PRINT))
                 return parse_print_statement();
         if (match(TOKEN_LEFT_BRACE))
                 return block_stmt_create(parse_block());
         return parse_expression_statement();
+}
+
+static Stmt *
+parse_if_statement(void)
+{
+        if (!match(TOKEN_LEFT_PAREN))
+                error(peek(), "Expect '(' after 'if'.");
+
+        Expr *condition = parse_expression();
+
+        if (!match(TOKEN_RIGHT_PAREN))
+                error(peek(), "Expect ')' after if condition.");
+
+        Stmt *then_branch = parse_statement();
+        Stmt *else_branch = NULL;
+        if (match(TOKEN_ELSE))
+                else_branch = parse_statement();
+
+        return if_stmt_create(condition, then_branch, else_branch);
 }
 
 static Stmt *

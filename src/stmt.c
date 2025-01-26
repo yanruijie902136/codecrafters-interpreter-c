@@ -28,6 +28,16 @@ expression_stmt_create(const Expr *expression)
 }
 
 Stmt *
+if_stmt_create(const Expr *condition, const Stmt *then_branch, const Stmt *else_branch)
+{
+        IfStmt *if_stmt = xmalloc(sizeof(IfStmt));
+        if_stmt->condition = condition;
+        if_stmt->then_branch = then_branch;
+        if_stmt->else_branch = else_branch;
+        return stmt_create(STMT_IF, if_stmt);
+}
+
+Stmt *
 print_stmt_create(const Expr *expression)
 {
         PrintStmt *print_stmt = xmalloc(sizeof(PrintStmt));

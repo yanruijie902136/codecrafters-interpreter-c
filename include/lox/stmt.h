@@ -7,6 +7,7 @@
 typedef enum {
         STMT_BLOCK,
         STMT_EXPRESSION,
+        STMT_IF,
         STMT_PRINT,
         STMT_VAR,
 } StmtType;
@@ -25,6 +26,12 @@ typedef struct {
 } ExpressionStmt;
 
 typedef struct {
+        const Expr *condition;
+        const Stmt *then_branch;
+        const Stmt *else_branch;
+} IfStmt;
+
+typedef struct {
         const Expr *expression;
 } PrintStmt;
 
@@ -35,6 +42,7 @@ typedef struct {
 
 Stmt *block_stmt_create(const PtrVector *statements);
 Stmt *expression_stmt_create(const Expr *expression);
+Stmt *if_stmt_create(const Expr *condition, const Stmt *then_branch, const Stmt *else_branch);
 Stmt *print_stmt_create(const Expr *expression);
 Stmt *var_stmt_create(const Token *name, const Expr *initializer);
 

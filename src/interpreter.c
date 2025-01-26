@@ -281,6 +281,19 @@ execute_expression_stmt(const ExpressionStmt *expression_stmt)
 }
 
 static void
+execute_if_stmt(const IfStmt *if_stmt)
+{
+        Object *object = evaluate_expr(if_stmt->condition);
+
+        if (is_truthy(object))
+                execute_stmt(if_stmt->then_branch);
+        else if (if_stmt->else_branch != NULL)
+                execute_stmt(if_stmt->else_branch);
+
+        object_destroy(object);
+}
+
+static void
 execute_print_stmt(const PrintStmt *print_stmt)
 {
         Object *object = evaluate_expr(print_stmt->expression);
@@ -311,6 +324,9 @@ execute_stmt(const Stmt *stmt)
                 break;
         case STMT_EXPRESSION:
                 execute_expression_stmt(stmt->data);
+                break;
+        case STMT_IF:
+                execute_if_stmt(stmt->data);
                 break;
         case STMT_PRINT:
                 execute_print_stmt(stmt->data);
