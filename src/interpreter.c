@@ -33,6 +33,25 @@ concatenate(const char *s1, const char *s2)
         return str;
 }
 
+static bool
+is_equal(const Object *left, const Object *right)
+{
+        if (left->type != right->type)
+                return false;
+
+        switch (left->type)
+        {
+        case OBJECT_BOOL:
+                return *(const bool *)left->data == *(const bool *)right->data;
+        case OBJECT_NIL:
+                return true;
+        case OBJECT_NUMBER:
+                return *(const double *)left->data == *(const double *)right->data;
+        case OBJECT_STRING:
+                return strcmp(left->data, right->data) == 0;
+        }
+}
+
 static Object *
 evaluate_binary_expr(const BinaryExpr *binary_expr)
 {
@@ -43,6 +62,12 @@ evaluate_binary_expr(const BinaryExpr *binary_expr)
         double num1, num2;
         switch (binary_expr->operator->type)
         {
+        case TOKEN_BANG_EQUAL:
+                object = object_create_bool(!is_equal(left, right));
+                break;
+        case TOKEN_EQUAL_EQUAL:
+                object = object_create_bool(is_equal(left, right));
+                break;
         case TOKEN_GREATER:
                 check_number_operands(left, right, &num1, &num2);
                 object = object_create_bool(num1 > num2);
