@@ -85,6 +85,7 @@ static Expr *parse_unary(void);
 static Expr *parse_primary(void);
 
 static Stmt *parse_statement(void);
+static Stmt *parse_expression_statement(void);
 static Stmt *parse_print_statement(void);
 
 static Expr *
@@ -185,7 +186,16 @@ parse_statement(void)
 {
         if (match(TOKEN_PRINT))
                 return parse_print_statement();
-        return NULL;
+        return parse_expression_statement();
+}
+
+static Stmt *
+parse_expression_statement(void)
+{
+        Expr *expression = parse_expression();
+        if (!match(TOKEN_SEMICOLON))
+                error(peek(), "Expect ';' after expression.");
+        return expression_stmt_create(expression);
 }
 
 static Stmt *

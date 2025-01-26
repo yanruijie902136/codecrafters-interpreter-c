@@ -206,6 +206,13 @@ interpret_expr(const Expr *expr)
 static void execute_stmt(const Stmt *stmt);
 
 static void
+execute_expression_stmt(const ExpressionStmt *expression_stmt)
+{
+        Object *object = evaluate_expr(expression_stmt->expression);
+        object_destroy(object);
+}
+
+static void
 execute_print_stmt(const PrintStmt *print_stmt)
 {
         Object *object = evaluate_expr(print_stmt->expression);
@@ -218,6 +225,9 @@ execute_stmt(const Stmt *stmt)
 {
         switch (stmt->type)
         {
+        case STMT_EXPRESSION:
+                execute_expression_stmt(stmt->data);
+                break;
         case STMT_PRINT:
                 execute_print_stmt(stmt->data);
                 break;
