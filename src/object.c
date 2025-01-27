@@ -22,7 +22,7 @@ object_create_bool(bool boolean)
 }
 
 Object *
-object_create_callable(const Callable *callable)
+object_create_callable(const void *callable)
 {
         return object_create(OBJECT_CALLABLE, callable);
 }
@@ -103,6 +103,8 @@ object_stringify(const Object *object, bool min_precision)
         {
         case OBJECT_BOOL:
                 return *(const bool *)object->data ? "true" : "false";
+        case OBJECT_CALLABLE:
+                return callable_stringify(object->data);
         case OBJECT_NIL:
                 return "nil";
         case OBJECT_NUMBER:

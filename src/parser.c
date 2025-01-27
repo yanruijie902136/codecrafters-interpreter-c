@@ -94,6 +94,7 @@ static Stmt *parse_var_declaration(void);
 static Stmt *parse_statement(void);
 static PtrVector *parse_block(void);
 static Stmt *parse_expression_statement(void);
+static Stmt *parse_function(const char *kind);
 static Stmt *parse_for_statement(void);
 static Stmt *parse_if_statement(void);
 static Stmt *parse_print_statement(void);
@@ -283,6 +284,8 @@ parse_primary(void)
 static Stmt *
 parse_declaration(void)
 {
+        if (match(TOKEN_FUN))
+                return parse_function("function");
         if (match(TOKEN_VAR))
                 return parse_var_declaration();
         return parse_statement();
@@ -342,6 +345,41 @@ parse_expression_statement(void)
         if (!match(TOKEN_SEMICOLON))
                 error(peek(), "Expect ';' after expression.");
         return expression_stmt_create(expression);
+}
+
+static Stmt *
+parse_function(const char *kind)
+{
+        if (!match(TOKEN_IDENTIFIER))
+                error(peek(), "Expect %s name.", kind);
+        Token *name = previous();
+
+        if (!match(TOKEN_LEFT_PAREN))
+                error(peek(), "Expect '(' after %s name.", kind);
+
+        PtrVector *params = ptr_vector_create();
+        if (peek()->type != TOKEN_RIGHT_PAREN)
+        {
+                do
+                {
+                        if (ptr_vector_size(params) >= 255)
+                                error(peek(), "Can't have more than 255 parameters.");
+
+                        if (!match(TOKEN_IDENTIFIER))
+                                error(peek(), "Expect parameter name.");
+                        ptr_vector_append(params, previous());
+                }
+                while (match(TOKEN_COMMA));
+        }
+
+        if (!match(TOKEN_RIGHT_PAREN))
+                error(peek(), "Expect ')' after parameters.");
+
+        if (!match(TOKEN_LEFT_BRACE))
+                error(peek(), "Expect '{' before %s body.", kind);
+
+        PtrVector *body = parse_block();
+        return function_stmt_create(name, params, body);
 }
 
 static Stmt *

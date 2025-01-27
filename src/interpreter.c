@@ -313,7 +313,7 @@ interpret_expr(const Expr *expr)
 
 static void execute_stmt(const Stmt *stmt);
 
-static void
+void
 execute_block(const PtrVector *statements, Environment *environment)
 {
         Environment *previous = interpreter.environment;
@@ -342,6 +342,14 @@ execute_expression_stmt(const ExpressionStmt *expression_stmt)
 {
         Object *object = evaluate_expr(expression_stmt->expression);
         object_destroy(object);
+}
+
+static void
+execute_function_stmt(const FunctionStmt *function_stmt)
+{
+        const char *name = function_stmt->name->lexeme;
+        Object *object = object_create_callable(function_create(function_stmt));
+        environment_define(interpreter.environment, function_stmt->name->lexeme, object);
 }
 
 static void
@@ -405,6 +413,9 @@ execute_stmt(const Stmt *stmt)
         case STMT_EXPRESSION:
                 execute_expression_stmt(stmt->data);
                 break;
+        case STMT_FUNCTION:
+                execute_function_stmt(stmt->data);
+                break;
         case STMT_IF:
                 execute_if_stmt(stmt->data);
                 break;
@@ -436,4 +447,10 @@ interpret_stmts(const PtrVector *stmts)
         }
 
         return 0;
+}
+
+Environment *
+get_globals(void)
+{
+        return interpreter.globals;
 }

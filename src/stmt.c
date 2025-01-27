@@ -28,6 +28,16 @@ expression_stmt_create(const Expr *expression)
 }
 
 Stmt *
+function_stmt_create(const Token *name, const PtrVector *params, const PtrVector *body)
+{
+        FunctionStmt *function_stmt = xmalloc(sizeof(FunctionStmt));
+        function_stmt->name = name;
+        function_stmt->params = params;
+        function_stmt->body = body;
+        return stmt_create(STMT_FUNCTION, function_stmt);
+}
+
+Stmt *
 if_stmt_create(const Expr *condition, const Stmt *then_branch, const Stmt *else_branch)
 {
         IfStmt *if_stmt = xmalloc(sizeof(IfStmt));
