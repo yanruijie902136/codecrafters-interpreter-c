@@ -328,7 +328,6 @@ execute_block(const PtrVector *statements, Environment *environment)
                 ret = execute_stmt(statement);
         }
 
-        environment_destroy(interpreter.environment);
         interpreter.environment = previous;
 
         return ret;
@@ -338,7 +337,9 @@ static Object *
 execute_block_stmt(const BlockStmt *block_stmt)
 {
         Environment *new_environment = environment_create(interpreter.environment);
-        return execute_block(block_stmt->statements, new_environment);
+        Object *ret = execute_block(block_stmt->statements, new_environment);
+        environment_destroy(new_environment);
+        return ret;
 }
 
 static Object *
@@ -354,7 +355,9 @@ static Object *
 execute_function_stmt(const FunctionStmt *function_stmt)
 {
         const char *name = function_stmt->name->lexeme;
-        Object *object = object_create_callable(function_create(function_stmt));
+        Object *object = object_create_callable(
+                function_create(interpreter.environment, function_stmt)
+        );
         environment_define(interpreter.environment, function_stmt->name->lexeme, object);
 
         return NULL;

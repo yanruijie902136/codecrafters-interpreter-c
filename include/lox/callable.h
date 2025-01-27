@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 
+#include "lox/environment.h"
 #include "lox/ptr_vector.h"
 #include "lox/stmt.h"
 
@@ -17,11 +18,12 @@ typedef struct {
 } Callable;
 
 typedef struct {
+        Environment *closure;
         const FunctionStmt *declaration;
 } Function;
 
 Callable *clock_create(void);
-Callable *function_create(const FunctionStmt *declaration);
+Callable *function_create(Environment *closure, const FunctionStmt *declaration);
 Callable *callable_copy(const Callable *callable);
 size_t callable_arity(const Callable *callable);
 void *callable_call(Callable *callable, const PtrVector *arguments);

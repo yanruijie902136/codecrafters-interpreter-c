@@ -7,6 +7,7 @@
 #include "lox/xmalloc.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
 
 static Callable *
@@ -25,9 +26,10 @@ clock_create(void)
 }
 
 Callable *
-function_create(const FunctionStmt *declaration)
+function_create(Environment *closure, const FunctionStmt *declaration)
 {
         Function *function = xmalloc(sizeof(Function));
+        function->closure = closure;
         function->declaration = declaration;
         return callable_create(CALLABLE_FUNCTION, function);
 }
@@ -67,7 +69,7 @@ clock_call(void)
 static void *
 function_call(const Function *function, const PtrVector *arguments)
 {
-        Environment *environment = environment_create(get_globals());
+        Environment *environment = environment_create(function->closure);
 
         size_t num_params = ptr_vector_size(function->declaration->params);
         for (size_t i = 0; i < num_params; i++)
