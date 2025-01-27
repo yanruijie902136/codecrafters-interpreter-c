@@ -85,6 +85,8 @@ static Expr *parse_comparison(void);
 static Expr *parse_term(void);
 static Expr *parse_factor(void);
 static Expr *parse_unary(void);
+static Expr *parse_call(void);
+static Expr *finish_call(const Expr *callee);
 static Expr *parse_primary(void);
 
 static Stmt *parse_declaration(void);
@@ -213,7 +215,43 @@ parse_unary(void)
                 Expr *right = parse_unary();
                 return unary_expr_create(operator, right);
         }
-        return parse_primary();
+        return parse_call();
+}
+
+static Expr *
+parse_call(void)
+{
+        Expr *expr = parse_primary();
+        for ( ; ; )
+        {
+                if (match(TOKEN_LEFT_PAREN))
+                        expr = finish_call(expr);
+                else
+                        break;
+        }
+        return expr;
+}
+
+static Expr *
+finish_call(const Expr *callee)
+{
+        PtrVector *arguments = ptr_vector_create();
+        if (peek()->type != TOKEN_RIGHT_PAREN)
+        {
+                do
+                {
+                        if (ptr_vector_size(arguments) >= 255)
+                                error(peek(), "Can't have more than 255 arguments.");
+                        ptr_vector_append(arguments, parse_expression());
+                }
+                while (match(TOKEN_COMMA));
+        }
+
+        if (!match(TOKEN_RIGHT_PAREN))
+                error(peek(), "Expect ')' after arguments.");
+        Token *paren = previous();
+
+        return call_expr_create(callee, paren, arguments);
 }
 
 static Expr *

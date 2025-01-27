@@ -1,5 +1,7 @@
 #include "lox/expr.h"
 #include "lox/object.h"
+#include "lox/ptr_vector.h"
+#include "lox/token.h"
 #include "lox/xmalloc.h"
 
 #include <stdarg.h>
@@ -32,6 +34,16 @@ binary_expr_create(const Expr *left, const Token *operator, const Expr *right)
         binary_expr->operator = operator;
         binary_expr->right = right;
         return expr_create(EXPR_BINARY, binary_expr);
+}
+
+Expr *
+call_expr_create(const Expr *callee, const Token *paren, const PtrVector *arguments)
+{
+        CallExpr *call_expr = xmalloc(sizeof(CallExpr));
+        call_expr->callee = callee;
+        call_expr->paren = paren;
+        call_expr->arguments = arguments;
+        return expr_create(EXPR_CALL, call_expr);
 }
 
 Expr *

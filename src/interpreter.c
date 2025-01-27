@@ -1,4 +1,5 @@
 #include "lox/interpreter.h"
+#include "lox/callable.h"
 #include "lox/environment.h"
 #include "lox/expr.h"
 #include "lox/object.h"
@@ -14,8 +15,9 @@
 #include <sysexits.h>
 
 typedef struct {
-        jmp_buf env;
+        Environment *globals;
         Environment *environment;
+        jmp_buf env;
 } Interpreter;
 
 static Interpreter interpreter;
@@ -23,7 +25,10 @@ static Interpreter interpreter;
 static void
 init(void)
 {
-        interpreter.environment = environment_create(NULL);
+        interpreter.globals = environment_create(NULL);
+        interpreter.environment = interpreter.globals;
+
+        environment_define(interpreter.globals, "clock", object_create_callable(clock_create()));
 }
 
 static Object *evaluate_expr(const Expr *expr);
@@ -157,6 +162,38 @@ evaluate_binary_expr(const BinaryExpr *binary_expr)
 }
 
 static Object *
+evaluate_call_expr(const CallExpr *call_expr)
+{
+        Object *callee = evaluate_expr(call_expr->callee);
+
+        PtrVector *arguments = ptr_vector_create();
+        size_t num_args = ptr_vector_size(call_expr->arguments);
+        for (size_t i = 0; i < num_args; i++)
+        {
+                Expr *argexpr = ptr_vector_at(call_expr->arguments, i);
+                ptr_vector_append(arguments, evaluate_expr(argexpr));
+        }
+
+        if (callee->type != OBJECT_CALLABLE)
+        {
+                fprintf(stderr, "Can only call functions and classes.\n");
+                longjmp(interpreter.env, 1);
+        }
+        Callable *callable = (Callable *)callee->data;
+
+        size_t arity = callable_arity(callable);
+        if (num_args != arity)
+        {
+                fprintf(stderr, "Expected %zu arguments but got %zu instead.\n", arity, num_args);
+                longjmp(interpreter.env, 1);
+        }
+
+        Object *object = callable_call(callable, arguments);
+        object_destroy(callee);
+        return object;
+}
+
+static Object *
 evaluate_grouping_expr(const GroupingExpr *grouping_expr)
 {
         return evaluate_expr(grouping_expr->expression);
@@ -249,6 +286,8 @@ evaluate_expr(const Expr *expr)
                 return evaluate_assign_expr(expr->data);
         case EXPR_BINARY:
                 return evaluate_binary_expr(expr->data);
+        case EXPR_CALL:
+                return evaluate_call_expr(expr->data);
         case EXPR_GROUPING:
                 return evaluate_grouping_expr(expr->data);
         case EXPR_LITERAL:

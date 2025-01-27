@@ -2,11 +2,13 @@
 #define CODECRAFTERS_INTERPRETER_EXPR_H
 
 #include "lox/object.h"
+#include "lox/ptr_vector.h"
 #include "lox/token.h"
 
 typedef enum {
         EXPR_ASSIGN,
         EXPR_BINARY,
+        EXPR_CALL,
         EXPR_GROUPING,
         EXPR_LITERAL,
         EXPR_LOGICAL,
@@ -29,6 +31,12 @@ typedef struct {
         const Token *operator;
         const Expr *right;
 } BinaryExpr;
+
+typedef struct {
+        const Expr *callee;
+        const Token *paren;
+        const PtrVector *arguments;
+} CallExpr;
 
 typedef struct {
         const Expr *expression;
@@ -55,6 +63,7 @@ typedef struct {
 
 Expr *assign_expr_create(const Token *name, const Expr *value);
 Expr *binary_expr_create(const Expr *left, const Token *operator, const Expr *right);
+Expr *call_expr_create(const Expr *callee, const Token *paren, const PtrVector *arguments);
 Expr *grouping_expr_create(const Expr *expression);
 Expr *literal_expr_create(const Object *value);
 Expr *logical_expr_create(const Expr *left, const Token *operator, const Expr *right);

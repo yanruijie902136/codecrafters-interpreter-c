@@ -1,8 +1,10 @@
 #ifndef CODECRAFTERS_INTERPRETER_OBJECT_H
 #define CODECRAFTERS_INTERPRETER_OBJECT_H
 
+#include "lox/callable.h"
 typedef enum {
         OBJECT_BOOL,
+        OBJECT_CALLABLE,
         OBJECT_NIL,
         OBJECT_NUMBER,
         OBJECT_STRING,
@@ -14,6 +16,7 @@ typedef struct {
 } Object;
 
 Object *object_create_bool(bool boolean);
+Object *object_create_callable(const Callable *callable);
 Object *object_create_nil(void);
 Object *object_create_number(double num);
 Object *object_create_string(const char *str);
