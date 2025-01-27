@@ -1,5 +1,6 @@
 #include "lox/stmt.h"
 #include "lox/ptr_vector.h"
+#include "lox/token.h"
 #include "lox/xmalloc.h"
 
 static Stmt *
@@ -53,6 +54,15 @@ print_stmt_create(const Expr *expression)
         PrintStmt *print_stmt = xmalloc(sizeof(PrintStmt));
         print_stmt->expression = expression;
         return stmt_create(STMT_PRINT, print_stmt);
+}
+
+Stmt *
+return_stmt_create(const Token *keyword, const Expr *value)
+{
+        ReturnStmt *return_stmt = xmalloc(sizeof(ReturnStmt));
+        return_stmt->keyword = keyword;
+        return_stmt->value = value;
+        return stmt_create(STMT_RETURN, return_stmt);
 }
 
 Stmt *

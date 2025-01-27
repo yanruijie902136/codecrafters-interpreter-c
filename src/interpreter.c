@@ -311,69 +311,89 @@ interpret_expr(const Expr *expr)
         return evaluate_expr(expr);
 }
 
-static void execute_stmt(const Stmt *stmt);
+static Object * execute_stmt(const Stmt *stmt);
 
-void
+Object *
 execute_block(const PtrVector *statements, Environment *environment)
 {
         Environment *previous = interpreter.environment;
         interpreter.environment = environment;
 
+        Object *ret = NULL;
+
         size_t num_statements = ptr_vector_size(statements);
-        for (size_t i = 0; i < num_statements; i++)
+        for (size_t i = 0; ret == NULL && i < num_statements; i++)
         {
                 Stmt *statement = ptr_vector_at(statements, i);
-                execute_stmt(statement);
+                ret = execute_stmt(statement);
         }
 
         environment_destroy(interpreter.environment);
         interpreter.environment = previous;
+
+        return ret;
 }
 
-static void
+static Object *
 execute_block_stmt(const BlockStmt *block_stmt)
 {
         Environment *new_environment = environment_create(interpreter.environment);
-        execute_block(block_stmt->statements, new_environment);
+        return execute_block(block_stmt->statements, new_environment);
 }
 
-static void
+static Object *
 execute_expression_stmt(const ExpressionStmt *expression_stmt)
 {
         Object *object = evaluate_expr(expression_stmt->expression);
         object_destroy(object);
+
+        return NULL;
 }
 
-static void
+static Object *
 execute_function_stmt(const FunctionStmt *function_stmt)
 {
         const char *name = function_stmt->name->lexeme;
         Object *object = object_create_callable(function_create(function_stmt));
         environment_define(interpreter.environment, function_stmt->name->lexeme, object);
+
+        return NULL;
 }
 
-static void
+static Object *
 execute_if_stmt(const IfStmt *if_stmt)
 {
         Object *object = evaluate_expr(if_stmt->condition);
 
+        Object *ret = NULL;
         if (is_truthy(object))
-                execute_stmt(if_stmt->then_branch);
+                ret = execute_stmt(if_stmt->then_branch);
         else if (if_stmt->else_branch != NULL)
-                execute_stmt(if_stmt->else_branch);
+                ret = execute_stmt(if_stmt->else_branch);
 
         object_destroy(object);
+        return ret;
 }
 
-static void
+static Object *
 execute_print_stmt(const PrintStmt *print_stmt)
 {
         Object *object = evaluate_expr(print_stmt->expression);
         printf("%s\n", object_stringify(object, true));
         object_destroy(object);
+
+        return NULL;
 }
 
-static void
+static Object *
+execute_return_stmt(const ReturnStmt *return_stmt)
+{
+        if (return_stmt->value == NULL)
+                return object_create_nil();
+        return evaluate_expr(return_stmt->value);
+}
+
+static Object *
 execute_var_stmt(const VarStmt *var_stmt)
 {
         Object *object;
@@ -384,9 +404,11 @@ execute_var_stmt(const VarStmt *var_stmt)
 
         const char *name = var_stmt->name->lexeme;
         environment_define(interpreter.environment, name, object);
+
+        return NULL;
 }
 
-static void
+static Object *
 execute_while_stmt(const WhileStmt *while_stmt)
 {
         for ( ; ; )
@@ -396,38 +418,35 @@ execute_while_stmt(const WhileStmt *while_stmt)
                 object_destroy(object);
 
                 if (!boolean)
-                        return;
+                        return NULL;
 
-                execute_stmt(while_stmt->body);
+                object = execute_stmt(while_stmt->body);
+                if (object != NULL)
+                        return object;
         }
 }
 
-static void
+static Object *
 execute_stmt(const Stmt *stmt)
 {
         switch (stmt->type)
         {
         case STMT_BLOCK:
-                execute_block_stmt(stmt->data);
-                break;
+                return execute_block_stmt(stmt->data);
         case STMT_EXPRESSION:
-                execute_expression_stmt(stmt->data);
-                break;
+                return execute_expression_stmt(stmt->data);
         case STMT_FUNCTION:
-                execute_function_stmt(stmt->data);
-                break;
+                return execute_function_stmt(stmt->data);
         case STMT_IF:
-                execute_if_stmt(stmt->data);
-                break;
+                return execute_if_stmt(stmt->data);
         case STMT_PRINT:
-                execute_print_stmt(stmt->data);
-                break;
+                return execute_print_stmt(stmt->data);
+        case STMT_RETURN:
+                return execute_return_stmt(stmt->data);
         case STMT_VAR:
-                execute_var_stmt(stmt->data);
-                break;
+                return execute_var_stmt(stmt->data);
         case STMT_WHILE:
-                execute_while_stmt(stmt->data);
-                break;
+                return execute_while_stmt(stmt->data);
         }
 }
 

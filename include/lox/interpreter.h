@@ -9,7 +9,7 @@
 Object *interpret_expr(const Expr *expr);
 int interpret_stmts(const PtrVector *stmts);
 
-void execute_block(const PtrVector *statements, Environment *environment);
+Object *execute_block(const PtrVector *statements, Environment *environment);
 Environment *get_globals(void);
 
 #endif

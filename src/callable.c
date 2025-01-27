@@ -78,9 +78,10 @@ function_call(const Function *function, const PtrVector *arguments)
                 environment_define(environment, name, object);
         }
 
-        execute_block(function->declaration->body, environment);
-
-        return object_create_nil();
+        Object *ret = execute_block(function->declaration->body, environment);
+        if (ret == NULL)
+                ret = object_create_nil();
+        return ret;
 }
 
 void *

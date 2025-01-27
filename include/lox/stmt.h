@@ -10,6 +10,7 @@ typedef enum {
         STMT_FUNCTION,
         STMT_IF,
         STMT_PRINT,
+        STMT_RETURN,
         STMT_VAR,
         STMT_WHILE,
 } StmtType;
@@ -44,6 +45,11 @@ typedef struct {
 } PrintStmt;
 
 typedef struct {
+        const Token *keyword;
+        const Expr *value;
+} ReturnStmt;
+
+typedef struct {
         const Token *name;
         const Expr *initializer;
 } VarStmt;
@@ -58,6 +64,7 @@ Stmt *expression_stmt_create(const Expr *expression);
 Stmt *function_stmt_create(const Token *name, const PtrVector *params, const PtrVector *body);
 Stmt *if_stmt_create(const Expr *condition, const Stmt *then_branch, const Stmt *else_branch);
 Stmt *print_stmt_create(const Expr *expression);
+Stmt *return_stmt_create(const Token *keyword, const Expr *value);
 Stmt *var_stmt_create(const Token *name, const Expr *initializer);
 Stmt *while_stmt_create(const Expr *condition, const Stmt *body);
 

@@ -98,6 +98,7 @@ static Stmt *parse_function(const char *kind);
 static Stmt *parse_for_statement(void);
 static Stmt *parse_if_statement(void);
 static Stmt *parse_print_statement(void);
+static Stmt *parse_return_statement(void);
 static Stmt *parse_while_statement(void);
 
 static Expr *
@@ -319,6 +320,8 @@ parse_statement(void)
                 return parse_if_statement();
         if (match(TOKEN_PRINT))
                 return parse_print_statement();
+        if (match(TOKEN_RETURN))
+                return parse_return_statement();
         if (match(TOKEN_WHILE))
                 return parse_while_statement();
 
@@ -459,6 +462,21 @@ parse_print_statement(void)
         if (!match(TOKEN_SEMICOLON))
                 error(peek(), "Expect ';' after value.");
         return print_stmt_create(expression);
+}
+
+static Stmt *
+parse_return_statement(void)
+{
+        Token *keyword = previous();
+
+        Expr *value = NULL;
+        if (peek()->type != TOKEN_SEMICOLON)
+                value = parse_expression();
+
+        if (!match(TOKEN_SEMICOLON))
+                error(peek(), "Expect ';' after return value.");
+
+        return return_stmt_create(keyword, value);
 }
 
 static Stmt *
