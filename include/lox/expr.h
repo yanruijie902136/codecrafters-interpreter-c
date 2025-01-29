@@ -69,6 +69,5 @@ Expr *literal_expr_create(const Object *value);
 Expr *logical_expr_create(const Expr *left, const Token *operator, const Expr *right);
 Expr *unary_expr_create(const Token *operator, const Expr *right);
 Expr *variable_expr_create(const Token *name);
-const char *expr_stringify(const Expr *expr);
 
 #endif

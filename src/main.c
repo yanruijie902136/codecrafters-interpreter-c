@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sysexits.h>
 
+#include "lox/ast_printer.h"
 #include "lox/expr.h"
 #include "lox/interpreter.h"
 #include "lox/object.h"
@@ -55,14 +56,14 @@ tokenize(const char *source, bool print_tokens)
 }
 
 static Expr *
-parse_expr(const PtrVector *tokens, bool print_expr)
+parse_expr(const PtrVector *tokens, bool print_ast)
 {
         Expr *expr = parse_to_expr(tokens);
         if (expr == NULL)
                 exit(EX_DATAERR);
 
-        if (print_expr)
-                printf("%s\n", expr_stringify(expr));
+        if (print_ast)
+                print_expr(expr);
 
         return expr;
 }
