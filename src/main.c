@@ -63,7 +63,7 @@ parse_expr(const PtrVector *tokens, bool print_ast)
                 exit(EX_DATAERR);
 
         if (print_ast)
-                print_expr(expr);
+                println_expr(expr);
 
         return expr;
 }

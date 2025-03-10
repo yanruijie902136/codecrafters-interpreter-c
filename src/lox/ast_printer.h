@@ -3,6 +3,6 @@
 
 #include "lox/expr.h"
 
-void print_expr(const Expr *expr);
+void println_expr(const Expr *expr);
 
 #endif

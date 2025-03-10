@@ -16,7 +16,7 @@ typedef struct {
         const char *current;
         size_t line;
         PtrVector *tokens;
-        bool hasError;
+        bool has_error;
 } Scanner;
 
 static Scanner scanner;
@@ -28,7 +28,7 @@ init(const char *source)
         scanner.current = source;
         scanner.line = 1;
         scanner.tokens = ptr_vector_create();
-        scanner.hasError = false;
+        scanner.has_error = false;
 }
 
 static bool
@@ -93,13 +93,13 @@ error(const char *format, ...)
         vfprintf(stderr, format, ap);
         va_end(ap);
         fprintf(stderr, "\n");
-        scanner.hasError = true;
+        scanner.has_error = true;
 }
 
 static char *
-remove_quotes(const char *quotedStr)
+remove_quotes(const char *quoted_str)
 {
-        return xstrndup(quotedStr + 1, strlen(quotedStr) - 2);
+        return xstrndup(quoted_str + 1, strlen(quoted_str) - 2);
 }
 
 static void
@@ -290,5 +290,5 @@ scan_tokens(const char *source)
 bool
 has_lexical_error(void)
 {
-        return scanner.hasError;
+        return scanner.has_error;
 }

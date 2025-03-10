@@ -4,15 +4,15 @@
 
 #include <stdio.h>
 
-static void print_expr_(const Expr *expr);
+static void print_expr(const Expr *expr);
 
 static void
 print_binary_expr(const BinaryExpr *binary_expr)
 {
         printf("(%s ", binary_expr->operator->lexeme);
-        print_expr_(binary_expr->left);
+        print_expr(binary_expr->left);
         printf(" ");
-        print_expr_(binary_expr->right);
+        print_expr(binary_expr->right);
         printf(")");
 }
 
@@ -20,7 +20,7 @@ static void
 print_grouping_expr(const GroupingExpr *grouping_expr)
 {
         printf("(group ");
-        print_expr_(grouping_expr->expression);
+        print_expr(grouping_expr->expression);
         printf(")");
 }
 
@@ -34,12 +34,12 @@ static void
 print_unary_expr(const UnaryExpr *unary_expr)
 {
         printf("(%s ", unary_expr->operator->lexeme);
-        print_expr_(unary_expr->right);
+        print_expr(unary_expr->right);
         printf(")");
 }
 
 static void
-print_expr_(const Expr *expr)
+print_expr(const Expr *expr)
 {
         switch (expr->type)
         {
@@ -59,8 +59,8 @@ print_expr_(const Expr *expr)
 }
 
 void
-print_expr(const Expr *expr)
+println_expr(const Expr *expr)
 {
-        print_expr_(expr);
+        print_expr(expr);
         printf("\n");
 }
