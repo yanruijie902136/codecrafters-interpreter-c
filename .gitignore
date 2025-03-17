@@ -55,5 +55,5 @@ build
 vcpkg_installed
 
 .cache/
-*lox
+*.lox
 valgrind-out.txt
