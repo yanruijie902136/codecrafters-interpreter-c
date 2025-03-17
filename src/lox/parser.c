@@ -67,7 +67,7 @@ __attribute__((noreturn))
 static void error(const Token *token, const char *format, ...) {
         va_list ap;
         va_start(ap, format);
-        verror(peek(), format, ap);
+        verror(token, format, ap);
 }
 
 static Token *consume(TokenType type, const char *format, ...) {
