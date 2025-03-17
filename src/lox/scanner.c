@@ -54,6 +54,24 @@ static void scan_token(void) {
         case '}':
                 add_token(TOKEN_RIGHT_BRACE);
                 break;
+        case ',':
+                add_token(TOKEN_COMMA);
+                break;
+        case '.':
+                add_token(TOKEN_DOT);
+                break;
+        case '-':
+                add_token(TOKEN_MINUS);
+                break;
+        case '+':
+                add_token(TOKEN_PLUS);
+                break;
+        case ';':
+                add_token(TOKEN_SEMICOLON);
+                break;
+        case '*':
+                add_token(TOKEN_STAR);
+                break;
         }
 }
 
