@@ -86,3 +86,7 @@ const char *object_to_string(const Object *object) {
                 return object->data.string;
         }
 }
+
+bool object_is_number(const Object *object) {
+        return object->type == OBJECT_NUMBER;
+}

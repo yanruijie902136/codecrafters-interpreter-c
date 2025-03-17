@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "lox/ast_printer.h"
+#include "lox/interpreter.h"
 #include "lox/parser.h"
 #include "lox/scanner.h"
 #include "lox/token.h"
@@ -56,6 +57,20 @@ static void parse(const char *source) {
         println_expr(expr);
 }
 
+static void evaluate(const char *source) {
+        Vector *tokens = scan_tokens(source);
+        if (has_scan_error()) {
+                exit(65);
+        }
+
+        Expr *expr = parse_expr(tokens);
+        if (expr == NULL) {
+                exit(65);
+        }
+
+        interpret_expr(expr);
+}
+
 int main(int argc, char *argv[]) {
         if (argc != 3) {
                 fprintf(stderr, "usage: %s command file\n", argv[0]);
@@ -69,6 +84,8 @@ int main(int argc, char *argv[]) {
                 tokenize(source);
         } else if (strcmp(command, "parse") == 0) {
                 parse(source);
+        } else if (strcmp(command, "evaluate") == 0) {
+                evaluate(source);
         } else {
                 errx(EXIT_FAILURE, "unknown command: %s", command);
         }
