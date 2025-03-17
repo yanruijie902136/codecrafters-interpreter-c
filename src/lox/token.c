@@ -42,6 +42,8 @@ static const char *token_type_to_string(TokenType type) {
                 return "LESS_EQUAL";
         case TOKEN_MINUS:
                 return "MINUS";
+        case TOKEN_NUMBER:
+                return "NUMBER";
         case TOKEN_PLUS:
                 return "PLUS";
         case TOKEN_RIGHT_BRACE:

@@ -20,6 +20,7 @@ typedef enum {
         TOKEN_LESS,
         TOKEN_LESS_EQUAL,
         TOKEN_MINUS,
+        TOKEN_NUMBER,
         TOKEN_PLUS,
         TOKEN_RIGHT_BRACE,
         TOKEN_RIGHT_PAREN,

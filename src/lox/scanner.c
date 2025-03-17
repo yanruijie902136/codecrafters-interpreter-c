@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static struct {
@@ -43,6 +44,10 @@ static bool match(char c) {
         }
         advance();
         return true;
+}
+
+static char peek_next(void) {
+        return is_at_end() ? '\0' : *(scanner.current + 1);
 }
 
 static char *get_lexeme(void) {
@@ -92,6 +97,23 @@ static void string(void) {
         char *unquoted_lexeme = xstrndup(lexeme + 1, strlen(lexeme) - 2);
         Object *literal = string_object_construct(unquoted_lexeme);
         add_token_complete(TOKEN_STRING, lexeme, literal);
+}
+
+static void number(void) {
+        while (isdigit(peek())) {
+                advance();
+        }
+
+        if (peek() == '.' && isdigit(peek_next())) {
+                advance();
+                while (isdigit(peek())) {
+                        advance();
+                }
+        }
+
+        char *lexeme = get_lexeme();
+        Object *literal = number_object_construct(atof(lexeme));
+        add_token_complete(TOKEN_NUMBER, lexeme, literal);
 }
 
 static void scan_token(void) {
@@ -155,8 +177,11 @@ static void scan_token(void) {
         default:
                 if (isspace(c)) {
                         break;
+                } else if (isdigit(c)) {
+                        number();
+                } else {
+                        error("Unexpected character: %c", c);
                 }
-                error("Unexpected character: %c", c);
         }
 }
 
