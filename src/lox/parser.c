@@ -44,14 +44,14 @@ static bool match(TokenType type) {
         return true;
 }
 
-static Expr *parse_expression(void);
-static Expr *parse_primary(void);
+static Expr *expression(void);
+static Expr *primary(void);
 
-static Expr *parse_expression(void) {
-        return parse_primary();
+static Expr *expression(void) {
+        return primary();
 }
 
-static Expr *parse_primary(void) {
+static Expr *primary(void) {
         if (match(TOKEN_FALSE)) {
                 return (Expr *)literal_expr_construct(boolean_object_construct(false));
         }
@@ -66,10 +66,16 @@ static Expr *parse_primary(void) {
                 return (Expr *)literal_expr_construct(previous()->literal);
         }
 
+        if (match(TOKEN_LEFT_PAREN)) {
+                Expr *expr = expression();
+                advance();
+                return (Expr *)grouping_expr_construct(expr);
+        }
+
         return NULL;
 }
 
 Expr *parse_expr(const Vector *tokens) {
         init(tokens);
-        return parse_expression();
+        return expression();
 }
