@@ -97,6 +97,15 @@ static void scan_token(void) {
         case '=':
                 add_token(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
                 break;
+        case '!':
+                add_token(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
+                break;
+        case '>':
+                add_token(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+                break;
+        case '<':
+                add_token(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+                break;
         default:
                 error("Unexpected character: %c", c);
         }
