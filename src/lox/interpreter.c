@@ -30,12 +30,24 @@ static Object *evaluate_literal_expr(const LiteralExpr *literal_expr) {
         return literal_expr->value;
 }
 
+static Object *evaluate_unary_expr(const UnaryExpr *unary_expr) {
+        Object *right = evaluate_expr(unary_expr->right);
+        switch (unary_expr->operator->type) {
+        case TOKEN_BANG:
+                return boolean_object_construct(!object_is_truthy(right));
+        case TOKEN_MINUS:
+                return number_object_construct(-object_as_number(right));
+        }
+}
+
 static Object *evaluate_expr(const Expr *expr) {
         switch (expr->type) {
         case EXPR_GROUPING:
                 return evaluate_grouping_expr((const GroupingExpr *)expr);
         case EXPR_LITERAL:
                 return evaluate_literal_expr((const LiteralExpr *)expr);
+        case EXPR_UNARY:
+                return evaluate_unary_expr((const UnaryExpr *)expr);
         }
 }
 

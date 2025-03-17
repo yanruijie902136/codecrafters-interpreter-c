@@ -1,6 +1,7 @@
 #include "lox/object.h"
 #include "util/xmalloc.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -87,6 +88,22 @@ const char *object_to_string(const Object *object) {
         }
 }
 
+bool object_is_truthy(const Object *object) {
+        switch (object->type) {
+        case OBJECT_BOOLEAN:
+                return object->data.boolean;
+        case OBJECT_NIL:
+                return false;
+        default:
+                return true;
+        }
+}
+
 bool object_is_number(const Object *object) {
         return object->type == OBJECT_NUMBER;
+}
+
+double object_as_number(const Object *object) {
+        assert(object_is_number(object));
+        return object->data.number;
 }
