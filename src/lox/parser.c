@@ -62,6 +62,10 @@ static Expr *parse_primary(void) {
                 return (Expr *)literal_expr_construct(nil_object_construct());
         }
 
+        if (match(TOKEN_NUMBER) || match(TOKEN_STRING)) {
+                return (Expr *)literal_expr_construct(previous()->literal);
+        }
+
         return NULL;
 }
 
