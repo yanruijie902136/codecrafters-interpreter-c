@@ -16,6 +16,12 @@ static void print_literal_expr(const LiteralExpr *literal_expr) {
         printf("%s", object_to_string(literal_expr->value));
 }
 
+static void print_unary_expr(const UnaryExpr *unary_expr) {
+        printf("(%s ", unary_expr->operator->lexeme);
+        print_expr(unary_expr->right);
+        printf(")");
+}
+
 static void print_expr(const Expr *expr) {
         switch (expr->type) {
         case EXPR_GROUPING:
@@ -23,6 +29,9 @@ static void print_expr(const Expr *expr) {
                 break;
         case EXPR_LITERAL:
                 print_literal_expr((const LiteralExpr *)expr);
+                break;
+        case EXPR_UNARY:
+                print_unary_expr((const UnaryExpr *)expr);
                 break;
         }
 }

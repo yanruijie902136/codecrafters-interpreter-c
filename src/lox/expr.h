@@ -1,11 +1,13 @@
 #ifndef CODECRAFTERS_INTERPRETER_LOX_EXPR_H
 #define CODECRAFTERS_INTERPRETER_LOX_EXPR_H
 
+#include "lox/token.h"
 #include "lox/object.h"
 
 typedef enum {
         EXPR_GROUPING,
         EXPR_LITERAL,
+        EXPR_UNARY,
 } ExprType;
 
 typedef struct {
@@ -25,5 +27,13 @@ typedef struct {
 } LiteralExpr;
 
 LiteralExpr *literal_expr_construct(Object *value);
+
+typedef struct {
+        Expr base;
+        Token *operator;
+        Expr *right;
+} UnaryExpr;
+
+UnaryExpr *unary_expr_construct(Token *operator, Expr *right);
 
 #endif

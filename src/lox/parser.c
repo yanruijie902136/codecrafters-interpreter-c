@@ -45,9 +45,18 @@ static bool match(TokenType type) {
 }
 
 static Expr *expression(void);
+static Expr *unary(void);
 static Expr *primary(void);
 
 static Expr *expression(void) {
+        return unary();
+}
+
+static Expr *unary(void) {
+        if (match(TOKEN_BANG) || match(TOKEN_MINUS)) {
+                Token *operator = previous();
+                return (Expr *)unary_expr_construct(operator, unary());
+        }
         return primary();
 }
 

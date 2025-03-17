@@ -14,3 +14,11 @@ LiteralExpr *literal_expr_construct(Object *value) {
         literal_expr->value = value;
         return literal_expr;
 }
+
+UnaryExpr *unary_expr_construct(Token *operator, Expr *right) {
+        UnaryExpr *unary_expr = xmalloc(sizeof(UnaryExpr));
+        unary_expr->base.type = EXPR_UNARY;
+        unary_expr->operator = operator;
+        unary_expr->right = right;
+        return unary_expr;
+}
