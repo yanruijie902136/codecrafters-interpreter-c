@@ -36,6 +36,10 @@ static void tokenize(const char *source) {
         }
 
         vector_destruct(tokens, token_destruct);
+
+        if (has_scan_error()) {
+                exit(65);
+        }
 }
 
 int main(int argc, char *argv[]) {

@@ -3,18 +3,22 @@
 #include "util/vector.h"
 #include "util/xmalloc.h"
 
+#include <stdarg.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 static struct {
         const char *start;
         const char *current;
         Vector *tokens;
+        bool has_error;
 } scanner;
 
 static void init(const char *source) {
         scanner.start = source;
         scanner.current = source;
         scanner.tokens = vector_construct();
+        scanner.has_error = false;
 }
 
 static char peek(void) {
@@ -37,6 +41,16 @@ static char *get_lexeme(void) {
 static void add_token(TokenType type) {
         Token *token = token_construct(type, get_lexeme());
         vector_push_back(scanner.tokens, token);
+}
+
+static void error(const char *format, ...) {
+        fprintf(stderr, "[line 1] Error: ");
+        va_list ap;
+        va_start(ap, format);
+        vfprintf(stderr, format, ap);
+        va_end(ap);
+        fprintf(stderr, "\n");
+        scanner.has_error = true;
 }
 
 static void scan_token(void) {
@@ -72,6 +86,8 @@ static void scan_token(void) {
         case '*':
                 add_token(TOKEN_STAR);
                 break;
+        default:
+                error("Unexpected character: %c", c);
         }
 }
 
@@ -83,4 +99,8 @@ Vector *scan_tokens(const char *source) {
         }
         add_token(TOKEN_EOF);
         return scanner.tokens;
+}
+
+bool has_scan_error(void) {
+        return scanner.has_error;
 }
