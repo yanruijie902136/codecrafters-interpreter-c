@@ -120,11 +120,47 @@ static bool is_alpha_numeric(char c) {
         return c == '_' || isalnum(c);
 }
 
+static TokenType identifier_or_keyword(const char *lexeme) {
+        typedef struct {
+                const char *lexeme;
+                TokenType type;
+        } Keyword;
+
+        static const Keyword keywords[] = {
+                {"and", TOKEN_AND},
+                {"class", TOKEN_CLASS},
+                {"else", TOKEN_ELSE},
+                {"false", TOKEN_FALSE},
+                {"for", TOKEN_FOR},
+                {"fun", TOKEN_FUN},
+                {"if", TOKEN_IF},
+                {"nil", TOKEN_NIL},
+                {"or", TOKEN_OR},
+                {"print", TOKEN_PRINT},
+                {"return", TOKEN_RETURN},
+                {"super", TOKEN_SUPER},
+                {"this", TOKEN_THIS},
+                {"true", TOKEN_TRUE},
+                {"var", TOKEN_VAR},
+                {"while", TOKEN_WHILE},
+        };
+        const size_t num_keywords = sizeof(keywords) / sizeof(Keyword);
+
+        for (size_t i = 0; i < num_keywords; i++) {
+                if (strcmp(lexeme, keywords[i].lexeme) == 0) {
+                        return keywords[i].type;
+                }
+        }
+        return TOKEN_IDENTIFIER;
+}
+
 static void identifier(void) {
         while (is_alpha_numeric(peek())) {
                 advance();
         }
-        add_token(TOKEN_IDENTIFIER);
+
+        char *lexeme = get_lexeme();
+        add_token_complete(identifier_or_keyword(lexeme), lexeme, NULL);
 }
 
 static void scan_token(void) {
