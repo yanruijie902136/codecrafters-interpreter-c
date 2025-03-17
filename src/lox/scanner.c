@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 static struct {
         const char *start;
@@ -49,9 +50,13 @@ static char *get_lexeme(void) {
         return xstrndup(scanner.start, lexeme_length);
 }
 
-static void add_token(TokenType type) {
-        Token *token = token_construct(type, get_lexeme(), scanner.line);
+static void add_token_complete(TokenType type, char *lexeme, Object *literal) {
+        Token *token = token_construct(type, lexeme, literal, scanner.line);
         vector_push_back(scanner.tokens, token);
+}
+
+static void add_token(TokenType type) {
+        add_token_complete(type, get_lexeme(), NULL);
 }
 
 static void error(const char *format, ...) {
@@ -68,6 +73,25 @@ static void comment(void) {
         while (!is_at_end() && peek() != '\n') {
                 advance();
         }
+}
+
+static void string(void) {
+        while (!is_at_end() && peek() != '\"') {
+                if (advance() == '\n') {
+                        scanner.line++;
+                }
+        }
+
+        if (is_at_end()) {
+                error("Unterminated string.");
+                return;
+        }
+        advance();
+
+        char *lexeme = get_lexeme();
+        char *unquoted_lexeme = xstrndup(lexeme + 1, strlen(lexeme) - 2);
+        Object *literal = string_object_construct(unquoted_lexeme);
+        add_token_complete(TOKEN_STRING, lexeme, literal);
 }
 
 static void scan_token(void) {
@@ -124,6 +148,9 @@ static void scan_token(void) {
                 break;
         case '\n':
                 scanner.line++;
+                break;
+        case '\"':
+                string();
                 break;
         default:
                 if (isspace(c)) {

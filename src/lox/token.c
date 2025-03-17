@@ -3,10 +3,11 @@
 
 #include <stdio.h>
 
-Token *token_construct(TokenType type, char *lexeme, size_t line) {
+Token *token_construct(TokenType type, char *lexeme, Object *literal, size_t line) {
         Token *token = xmalloc(sizeof(Token));
         token->type = type;
         token->lexeme = lexeme;
+        token->literal = literal;
         token->line = line;
         return token;
 }
@@ -53,11 +54,14 @@ static const char *token_type_to_string(TokenType type) {
                 return "SLASH";
         case TOKEN_STAR:
                 return "STAR";
+        case TOKEN_STRING:
+                return "STRING";
         }
 }
 
 const char *token_to_string(const Token *token) {
         static char str[256];
-        snprintf(str, sizeof(str), "%s %s null", token_type_to_string(token->type), token->lexeme);
+        const char *literal_str = token->literal == NULL ? "null" : object_to_string(token->literal);
+        snprintf(str, sizeof(str), "%s %s %s", token_type_to_string(token->type), token->lexeme, literal_str);
         return str;
 }
