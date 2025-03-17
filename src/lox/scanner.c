@@ -17,6 +17,18 @@ static void init(const char *source) {
         scanner.tokens = vector_construct();
 }
 
+static char peek(void) {
+        return *scanner.current;
+}
+
+static bool is_at_end(void) {
+        return peek() == '\0';
+}
+
+static char advance(void) {
+        return *scanner.current++;
+}
+
 static char *get_lexeme(void) {
         size_t lexeme_length = scanner.current - scanner.start;
         return xstrndup(scanner.start, lexeme_length);
@@ -27,8 +39,24 @@ static void add_token(TokenType type) {
         vector_push_back(scanner.tokens, token);
 }
 
+static void scan_token(void) {
+        char c = advance();
+        switch (c) {
+        case '(':
+                add_token(TOKEN_LEFT_PAREN);
+                break;
+        case ')':
+                add_token(TOKEN_RIGHT_PAREN);
+                break;
+        }
+}
+
 Vector *scan_tokens(const char *source) {
         init(source);
+        while (!is_at_end()) {
+                scan_token();
+                scanner.start = scanner.current;
+        }
         add_token(TOKEN_EOF);
         return scanner.tokens;
 }
