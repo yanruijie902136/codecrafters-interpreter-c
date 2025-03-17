@@ -61,6 +61,12 @@ static void error(const char *format, ...) {
         scanner.has_error = true;
 }
 
+static void comment(void) {
+        while (!is_at_end() && peek() != '\n') {
+                advance();
+        }
+}
+
 static void scan_token(void) {
         char c = advance();
         switch (c) {
@@ -105,6 +111,13 @@ static void scan_token(void) {
                 break;
         case '<':
                 add_token(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+                break;
+        case '/':
+                if (match('/')) {
+                        comment();
+                } else {
+                        add_token(TOKEN_SLASH);
+                }
                 break;
         default:
                 error("Unexpected character: %c", c);
