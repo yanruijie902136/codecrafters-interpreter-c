@@ -22,12 +22,18 @@ static const char *stringify(const Object *object) {
 
 static Object *evaluate_expr(const Expr *expr);
 
+static Object *evaluate_grouping_expr(const GroupingExpr *grouping_expr) {
+        return evaluate_expr(grouping_expr->expression);
+}
+
 static Object *evaluate_literal_expr(const LiteralExpr *literal_expr) {
         return literal_expr->value;
 }
 
 static Object *evaluate_expr(const Expr *expr) {
         switch (expr->type) {
+        case EXPR_GROUPING:
+                return evaluate_grouping_expr((const GroupingExpr *)expr);
         case EXPR_LITERAL:
                 return evaluate_literal_expr((const LiteralExpr *)expr);
         }
