@@ -1,6 +1,15 @@
 #include "lox/expr.h"
 #include "util/xmalloc.h"
 
+BinaryExpr *binary_expr_construct(Expr *left, Token *operator, Expr *right) {
+        BinaryExpr *binary_expr = xmalloc(sizeof(BinaryExpr));
+        binary_expr->base.type = EXPR_BINARY;
+        binary_expr->left = left;
+        binary_expr->operator = operator;
+        binary_expr->right = right;
+        return binary_expr;
+}
+
 GroupingExpr *grouping_expr_construct(Expr *expression) {
         GroupingExpr *grouping_expr = xmalloc(sizeof(GroupingExpr));
         grouping_expr->base.type = EXPR_GROUPING;

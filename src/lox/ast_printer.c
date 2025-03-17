@@ -6,6 +6,14 @@
 
 static void print_expr(const Expr *expr);
 
+static void print_binary_expr(const BinaryExpr *binary_expr) {
+        printf("(%s ", binary_expr->operator->lexeme);
+        print_expr(binary_expr->left);
+        printf(" ");
+        print_expr(binary_expr->right);
+        printf(")");
+}
+
 static void print_grouping_expr(const GroupingExpr *grouping_expr) {
         printf("(group ");
         print_expr(grouping_expr->expression);
@@ -24,6 +32,9 @@ static void print_unary_expr(const UnaryExpr *unary_expr) {
 
 static void print_expr(const Expr *expr) {
         switch (expr->type) {
+        case EXPR_BINARY:
+                print_binary_expr((const BinaryExpr *)expr);
+                break;
         case EXPR_GROUPING:
                 print_grouping_expr((const GroupingExpr *)expr);
                 break;

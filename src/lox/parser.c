@@ -45,11 +45,21 @@ static bool match(TokenType type) {
 }
 
 static Expr *expression(void);
+static Expr *factor(void);
 static Expr *unary(void);
 static Expr *primary(void);
 
 static Expr *expression(void) {
-        return unary();
+        return factor();
+}
+
+static Expr *factor(void) {
+        Expr *expr = unary();
+        while (match(TOKEN_SLASH) || match(TOKEN_STAR)) {
+                Token *operator = previous();
+                expr = (Expr *)binary_expr_construct(expr, operator, unary());
+        }
+        return expr;
 }
 
 static Expr *unary(void) {

@@ -5,6 +5,7 @@
 #include "lox/object.h"
 
 typedef enum {
+        EXPR_BINARY,
         EXPR_GROUPING,
         EXPR_LITERAL,
         EXPR_UNARY,
@@ -13,6 +14,15 @@ typedef enum {
 typedef struct {
         ExprType type;
 } Expr;
+
+typedef struct {
+        Expr base;
+        Expr *left;
+        Token *operator;
+        Expr *right;
+} BinaryExpr;
+
+BinaryExpr *binary_expr_construct(Expr *left, Token *operator, Expr *right);
 
 typedef struct {
         Expr base;
