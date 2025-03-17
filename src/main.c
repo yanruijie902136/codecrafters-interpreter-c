@@ -48,7 +48,12 @@ static void parse(const char *source) {
                 exit(65);
         }
 
-        println_expr(parse_expr(tokens));
+        Expr *expr = parse_expr(tokens);
+        if (expr == NULL) {
+                exit(65);
+        }
+
+        println_expr(expr);
 }
 
 int main(int argc, char *argv[]) {

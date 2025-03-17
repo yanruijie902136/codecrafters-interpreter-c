@@ -3,9 +3,14 @@
 #include "lox/token.h"
 #include "lox/object.h"
 
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stdio.h>
+
 static struct {
         const Vector *tokens;
         size_t current;
+        jmp_buf env;
 } parser;
 
 static void init(const Vector *tokens) {
@@ -42,6 +47,36 @@ static bool match(TokenType type) {
         }
         advance();
         return true;
+}
+
+__attribute__((noreturn))
+static void verror(const Token *token, const char *format, va_list ap) {
+        fprintf(stderr, "[line %zu] Error ", token->line);
+        if (token->type == TOKEN_EOF) {
+                fprintf(stderr, "at end: ");
+        } else {
+                fprintf(stderr, "at '%s': ", token->lexeme);
+        }
+        vfprintf(stderr, format, ap);
+        va_end(ap);
+        fprintf(stderr, "\n");
+        longjmp(parser.env, 1);
+}
+
+__attribute__((noreturn))
+static void error(const Token *token, const char *format, ...) {
+        va_list ap;
+        va_start(ap, format);
+        verror(peek(), format, ap);
+}
+
+static Token *consume(TokenType type, const char *format, ...) {
+        if (match(type)) {
+                return previous();
+        }
+        va_list ap;
+        va_start(ap, format);
+        verror(peek(), format, ap);
 }
 
 static Expr *expression(void);
@@ -117,14 +152,17 @@ static Expr *primary(void) {
 
         if (match(TOKEN_LEFT_PAREN)) {
                 Expr *expr = expression();
-                advance();
+                consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
                 return (Expr *)grouping_expr_construct(expr);
         }
 
-        return NULL;
+        error(peek(), "Expect expression.");
 }
 
 Expr *parse_expr(const Vector *tokens) {
         init(tokens);
+        if (setjmp(parser.env) != 0) {
+                return NULL;
+        }
         return expression();
 }
