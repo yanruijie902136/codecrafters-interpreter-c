@@ -3,6 +3,7 @@
 #include "util/vector.h"
 #include "util/xmalloc.h"
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -120,6 +121,9 @@ static void scan_token(void) {
                 }
                 break;
         default:
+                if (isspace(c)) {
+                        break;
+                }
                 error("Unexpected character: %c", c);
         }
 }
