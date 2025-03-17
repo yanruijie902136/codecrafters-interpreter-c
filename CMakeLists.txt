@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(codecrafters-interpreter)
+project(codecrafters-interpreter LANGUAGES C)
 
-file(GLOB_RECURSE SOURCE_FILES src/*.c src/*.h)
+set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD_REQUIRED TRUE)
 
-set(CMAKE_C_STANDARD 23) # Enable the C23 standard
-
+file(GLOB_RECURSE SOURCE_FILES src/*.c)
 add_executable(interpreter ${SOURCE_FILES})
+target_include_directories(interpreter PRIVATE src)

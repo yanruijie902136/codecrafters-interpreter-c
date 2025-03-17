@@ -53,3 +53,7 @@ dkms.conf
 
 build
 vcpkg_installed
+
+.cache/
+*lox
+valgrind-out.txt
