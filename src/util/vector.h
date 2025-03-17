@@ -7,7 +7,7 @@ typedef struct Vector Vector;
 
 Vector *vector_construct(void);
 size_t vector_size(const Vector *vector);
-const void *vector_get_const(const Vector *vector, size_t index);
+void *vector_at(const Vector *vector, size_t index);
 void vector_push_back(Vector *vector, void *element);
 
 #endif

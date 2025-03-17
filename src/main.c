@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "lox/ast_printer.h"
+#include "lox/parser.h"
 #include "lox/scanner.h"
 #include "lox/token.h"
 #include "util/vector.h"
@@ -31,13 +33,22 @@ static void tokenize(const char *source) {
 
         size_t num_tokens = vector_size(tokens);
         for (size_t i = 0; i < num_tokens; i++) {
-                const Token *token = vector_get_const(tokens, i);
+                Token *token = vector_at(tokens, i);
                 printf("%s\n", token_to_string(token));
         }
 
         if (has_scan_error()) {
                 exit(65);
         }
+}
+
+static void parse(const char *source) {
+        Vector *tokens = scan_tokens(source);
+        if (has_scan_error()) {
+                exit(65);
+        }
+
+        println_expr(parse_expr(tokens));
 }
 
 int main(int argc, char *argv[]) {
@@ -51,6 +62,8 @@ int main(int argc, char *argv[]) {
         const char *command = argv[1];
         if (strcmp(command, "tokenize") == 0) {
                 tokenize(source);
+        } else if (strcmp(command, "parse") == 0) {
+                parse(source);
         } else {
                 errx(EXIT_FAILURE, "unknown command: %s", command);
         }

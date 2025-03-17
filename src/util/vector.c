@@ -23,7 +23,7 @@ size_t vector_size(const Vector *vector) {
         return vector->size;
 }
 
-const void *vector_get_const(const Vector *vector, size_t index) {
+void *vector_at(const Vector *vector, size_t index) {
         assert(0 <= index && index < vector->size);
         return vector->elements[index];
 }
