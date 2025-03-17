@@ -48,6 +48,12 @@ static void scan_token(void) {
         case ')':
                 add_token(TOKEN_RIGHT_PAREN);
                 break;
+        case '{':
+                add_token(TOKEN_LEFT_BRACE);
+                break;
+        case '}':
+                add_token(TOKEN_RIGHT_BRACE);
+                break;
         }
 }
 
