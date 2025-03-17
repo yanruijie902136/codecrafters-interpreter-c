@@ -45,6 +45,7 @@ static bool match(TokenType type) {
 }
 
 static Expr *expression(void);
+static Expr *equality(void);
 static Expr *comparison(void);
 static Expr *term(void);
 static Expr *factor(void);
@@ -52,7 +53,16 @@ static Expr *unary(void);
 static Expr *primary(void);
 
 static Expr *expression(void) {
-        return comparison();
+        return equality();
+}
+
+static Expr *equality(void) {
+        Expr *expr = comparison();
+        while (match(TOKEN_BANG_EQUAL) || match(TOKEN_EQUAL_EQUAL)) {
+                Token *operator = previous();
+                expr = (Expr *)binary_expr_construct(expr, operator, comparison());
+        }
+        return expr;
 }
 
 static Expr *comparison(void) {
