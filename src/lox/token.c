@@ -3,10 +3,11 @@
 
 #include <stdio.h>
 
-Token *token_construct(TokenType type, char *lexeme) {
+Token *token_construct(TokenType type, char *lexeme, size_t line) {
         Token *token = xmalloc(sizeof(Token));
         token->type = type;
         token->lexeme = lexeme;
+        token->line = line;
         return token;
 }
 

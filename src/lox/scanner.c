@@ -13,6 +13,7 @@ static struct {
         const char *current;
         Vector *tokens;
         bool has_error;
+        size_t line;
 } scanner;
 
 static void init(const char *source) {
@@ -20,6 +21,7 @@ static void init(const char *source) {
         scanner.current = source;
         scanner.tokens = vector_construct();
         scanner.has_error = false;
+        scanner.line = 1;
 }
 
 static char peek(void) {
@@ -48,12 +50,12 @@ static char *get_lexeme(void) {
 }
 
 static void add_token(TokenType type) {
-        Token *token = token_construct(type, get_lexeme());
+        Token *token = token_construct(type, get_lexeme(), scanner.line);
         vector_push_back(scanner.tokens, token);
 }
 
 static void error(const char *format, ...) {
-        fprintf(stderr, "[line 1] Error: ");
+        fprintf(stderr, "[line %zu] Error: ", scanner.line);
         va_list ap;
         va_start(ap, format);
         vfprintf(stderr, format, ap);
@@ -119,6 +121,9 @@ static void scan_token(void) {
                 } else {
                         add_token(TOKEN_SLASH);
                 }
+                break;
+        case '\n':
+                scanner.line++;
                 break;
         default:
                 if (isspace(c)) {
