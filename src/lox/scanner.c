@@ -33,6 +33,14 @@ static char advance(void) {
         return *scanner.current++;
 }
 
+static bool match(char c) {
+        if (peek() != c) {
+                return false;
+        }
+        advance();
+        return true;
+}
+
 static char *get_lexeme(void) {
         size_t lexeme_length = scanner.current - scanner.start;
         return xstrndup(scanner.start, lexeme_length);
@@ -85,6 +93,9 @@ static void scan_token(void) {
                 break;
         case '*':
                 add_token(TOKEN_STAR);
+                break;
+        case '=':
+                add_token(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
                 break;
         default:
                 error("Unexpected character: %c", c);

@@ -19,15 +19,6 @@ Vector *vector_construct(void) {
         return vector;
 }
 
-void vector_destruct(Vector *vector, void (*element_destruct)(void *)) {
-        for (size_t i = 0; i < vector->size; i++) {
-                void *element = vector->elements[i];
-                element_destruct(element);
-        }
-        free(vector->elements);
-        free(vector);
-}
-
 size_t vector_size(const Vector *vector) {
         return vector->size;
 }

@@ -35,8 +35,6 @@ static void tokenize(const char *source) {
                 printf("%s\n", token_to_string(token));
         }
 
-        vector_destruct(tokens, token_destruct);
-
         if (has_scan_error()) {
                 exit(65);
         }
@@ -57,6 +55,5 @@ int main(int argc, char *argv[]) {
                 errx(EXIT_FAILURE, "unknown command: %s", command);
         }
 
-        free(source);
         exit(EXIT_SUCCESS);
 }

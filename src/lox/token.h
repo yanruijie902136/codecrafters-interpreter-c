@@ -5,6 +5,8 @@ typedef enum {
         TOKEN_COMMA,
         TOKEN_DOT,
         TOKEN_EOF,
+        TOKEN_EQUAL,
+        TOKEN_EQUAL_EQUAL,
         TOKEN_LEFT_BRACE,
         TOKEN_LEFT_PAREN,
         TOKEN_MINUS,
@@ -21,7 +23,6 @@ typedef struct {
 } Token;
 
 Token *token_construct(TokenType type, char *lexeme);
-void token_destruct(void *token);
 const char *token_to_string(const Token *token);
 
 #endif
