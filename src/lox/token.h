@@ -15,6 +15,7 @@ typedef enum {
         TOKEN_EQUAL_EQUAL,
         TOKEN_GREATER,
         TOKEN_GREATER_EQUAL,
+        TOKEN_IDENTIFIER,
         TOKEN_LEFT_BRACE,
         TOKEN_LEFT_PAREN,
         TOKEN_LESS,

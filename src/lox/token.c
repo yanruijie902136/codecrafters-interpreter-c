@@ -32,6 +32,8 @@ static const char *token_type_to_string(TokenType type) {
                 return "GREATER";
         case TOKEN_GREATER_EQUAL:
                 return "GREATER_EQUAL";
+        case TOKEN_IDENTIFIER:
+                return "IDENTIFIER";
         case TOKEN_LEFT_BRACE:
                 return "LEFT_BRACE";
         case TOKEN_LEFT_PAREN:

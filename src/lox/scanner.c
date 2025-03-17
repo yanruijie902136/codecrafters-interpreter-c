@@ -116,6 +116,17 @@ static void number(void) {
         add_token_complete(TOKEN_NUMBER, lexeme, literal);
 }
 
+static bool is_alpha_numeric(char c) {
+        return c == '_' || isalnum(c);
+}
+
+static void identifier(void) {
+        while (is_alpha_numeric(peek())) {
+                advance();
+        }
+        add_token(TOKEN_IDENTIFIER);
+}
+
 static void scan_token(void) {
         char c = advance();
         switch (c) {
@@ -179,6 +190,8 @@ static void scan_token(void) {
                         break;
                 } else if (isdigit(c)) {
                         number();
+                } else if (is_alpha_numeric(c)) {
+                        identifier();
                 } else {
                         error("Unexpected character: %c", c);
                 }
