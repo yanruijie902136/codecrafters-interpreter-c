@@ -3,7 +3,9 @@
 #include "lox/object.h"
 #include "util/xmalloc.h"
 
+#include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static const char *stringify(const Object *object) {
@@ -26,6 +28,22 @@ static char *concat(const char *s1, const char *s2) {
         char *res = xmalloc(size);
         snprintf(res, size, "%s%s", s1, s2);
         return res;
+}
+
+static void error(const Token *token, const char *format, ...) {
+        va_list ap;
+        va_start(ap, format);
+        vfprintf(stderr, format, ap);
+        va_end(ap);
+        fprintf(stderr, "\n[line %zu]\n", token->line);
+        exit(70);
+}
+
+static void check_number_operand(const Token *operator, const Object *operand) {
+        if (object_is_number(operand)) {
+                return;
+        }
+        error(operator, "Operand must be a number.");
 }
 
 static Object *evaluate_expr(const Expr *expr);
@@ -75,6 +93,7 @@ static Object *evaluate_unary_expr(const UnaryExpr *unary_expr) {
         case TOKEN_BANG:
                 return boolean_object_construct(!object_is_truthy(right));
         case TOKEN_MINUS:
+                check_number_operand(unary_expr->operator, right);
                 return number_object_construct(-object_as_number(right));
         }
 }
