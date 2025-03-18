@@ -50,6 +50,7 @@ static bool match(TokenType type) {
 }
 
 static Expr *expression(void);
+static Expr *assignment(void);
 static Expr *equality(void);
 static Expr *comparison(void);
 static Expr *term(void);
@@ -64,7 +65,25 @@ static Stmt *print_statement(void);
 static Stmt *expression_statement(void);
 
 static Expr *expression(void) {
-        return equality();
+        return assignment();
+}
+
+static Expr *assignment(void) {
+        Expr *expr = equality();
+
+        if (match(TOKEN_EQUAL)) {
+                Token *equals = previous();
+                Expr *value = assignment();
+
+                if (expr->type == EXPR_VARIABLE) {
+                        Token *name = ((VariableExpr *)expr)->name;
+                        return (Expr *)assign_expr_construct(name, value);
+                }
+
+                parse_error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
 }
 
 static Expr *equality(void) {

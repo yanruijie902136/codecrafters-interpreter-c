@@ -58,6 +58,12 @@ static void check_number_operands(const Token *operator, const Object *left, con
 
 static Object *evaluate_expr(const Expr *expr);
 
+static Object *evaluate_assign_expr(const AssignExpr *assign_expr) {
+        Object *value = evaluate_expr(assign_expr->value);
+        environment_assign(interpreter.environment, assign_expr->name, value);
+        return value;
+}
+
 static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
         Object *left = evaluate_expr(binary_expr->left);
         Object *right = evaluate_expr(binary_expr->right);
@@ -130,6 +136,8 @@ static Object *evaluate_variable_expr(const VariableExpr *variable_expr) {
 
 static Object *evaluate_expr(const Expr *expr) {
         switch (expr->type) {
+        case EXPR_ASSIGN:
+                return evaluate_assign_expr((const AssignExpr *)expr);
         case EXPR_BINARY:
                 return evaluate_binary_expr((const BinaryExpr *)expr);
         case EXPR_GROUPING:

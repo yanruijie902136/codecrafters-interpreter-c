@@ -5,6 +5,7 @@
 #include "lox/object.h"
 
 typedef enum {
+        EXPR_ASSIGN,
         EXPR_BINARY,
         EXPR_GROUPING,
         EXPR_LITERAL,
@@ -15,6 +16,14 @@ typedef enum {
 typedef struct {
         ExprType type;
 } Expr;
+
+typedef struct {
+        Expr base;
+        Token *name;
+        Expr *value;
+} AssignExpr;
+
+AssignExpr *assign_expr_construct(Token *name, Expr *value);
 
 typedef struct {
         Expr base;

@@ -1,6 +1,14 @@
 #include "lox/expr.h"
 #include "util/xmalloc.h"
 
+AssignExpr *assign_expr_construct(Token *name, Expr *value) {
+        AssignExpr *assign_expr = xmalloc(sizeof(AssignExpr));
+        assign_expr->base.type = EXPR_ASSIGN;
+        assign_expr->name = name;
+        assign_expr->value = value;
+        return assign_expr;
+}
+
 BinaryExpr *binary_expr_construct(Expr *left, Token *operator, Expr *right) {
         BinaryExpr *binary_expr = xmalloc(sizeof(BinaryExpr));
         binary_expr->base.type = EXPR_BINARY;

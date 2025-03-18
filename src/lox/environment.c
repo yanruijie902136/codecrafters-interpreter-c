@@ -105,3 +105,11 @@ Object *environment_get(const Environment *environment, const Token *name) {
 void environment_define(Environment *environment, const char *name, Object *value) {
         insert(&environment->root, name, value);
 }
+
+void environment_assign(Environment *environment, const Token *name, Object *value) {
+        Node *node = search(environment->root, name->lexeme);
+        if (node == NULL) {
+                interpret_error(name, "Undefined variable '%s'.", name->lexeme);
+        }
+        node->value = value;
+}
