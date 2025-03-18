@@ -5,5 +5,6 @@
 #include "util/vector.h"
 
 Expr *parse_expr(const Vector *tokens);
+Vector *parse_stmts(const Vector *tokens);
 
 #endif

@@ -48,13 +48,7 @@ static void parse(const char *source) {
         if (has_scan_error()) {
                 exit(65);
         }
-
-        Expr *expr = parse_expr(tokens);
-        if (expr == NULL) {
-                exit(65);
-        }
-
-        println_expr(expr);
+        println_expr(parse_expr(tokens));
 }
 
 static void evaluate(const char *source) {
@@ -62,13 +56,15 @@ static void evaluate(const char *source) {
         if (has_scan_error()) {
                 exit(65);
         }
+        interpret_expr(parse_expr(tokens));
+}
 
-        Expr *expr = parse_expr(tokens);
-        if (expr == NULL) {
+static void run(const char *source) {
+        Vector *tokens = scan_tokens(source);
+        if (has_scan_error()) {
                 exit(65);
         }
-
-        interpret_expr(expr);
+        interpret_stmts(parse_stmts(tokens));
 }
 
 int main(int argc, char *argv[]) {
@@ -86,6 +82,8 @@ int main(int argc, char *argv[]) {
                 parse(source);
         } else if (strcmp(command, "evaluate") == 0) {
                 evaluate(source);
+        } else if (strcmp(command, "run") == 0) {
+                run(source);
         } else {
                 errx(EXIT_FAILURE, "unknown command: %s", command);
         }

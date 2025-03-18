@@ -1,17 +1,16 @@
 #include "lox/parser.h"
 #include "lox/errors.h"
 #include "lox/expr.h"
+#include "lox/stmt.h"
 #include "lox/token.h"
 #include "lox/object.h"
 
-#include <setjmp.h>
 #include <stdarg.h>
 #include <stdio.h>
 
 static struct {
         const Vector *tokens;
         size_t current;
-        jmp_buf env;
 } parser;
 
 static void init(const Vector *tokens) {
@@ -57,6 +56,9 @@ static Expr *term(void);
 static Expr *factor(void);
 static Expr *unary(void);
 static Expr *primary(void);
+
+static Stmt *statement(void);
+static Stmt *print_statement(void);
 
 static Expr *expression(void) {
         return equality();
@@ -132,10 +134,30 @@ static Expr *primary(void) {
         parse_error(peek(), "Expect expression.");
 }
 
+static Stmt *statement(void) {
+        if (match(TOKEN_PRINT)) {
+                return print_statement();
+        }
+}
+
+static Stmt *print_statement(void) {
+        Expr *expr = expression();
+        if (!match(TOKEN_SEMICOLON)) {
+                parse_error(peek(), "Expect ';' after value.");
+        }
+        return (Stmt *)print_stmt_construct(expr);
+}
+
 Expr *parse_expr(const Vector *tokens) {
         init(tokens);
-        if (setjmp(parser.env) != 0) {
-                return NULL;
-        }
         return expression();
+}
+
+Vector *parse_stmts(const Vector *tokens) {
+        init(tokens);
+        Vector *statements = vector_construct();
+        while (!is_at_end()) {
+                vector_push_back(statements, statement());
+        }
+        return statements;
 }

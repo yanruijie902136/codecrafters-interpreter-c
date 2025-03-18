@@ -2,6 +2,7 @@
 #include "lox/errors.h"
 #include "lox/expr.h"
 #include "lox/object.h"
+#include "lox/stmt.h"
 #include "util/xmalloc.h"
 
 #include <stdarg.h>
@@ -122,6 +123,27 @@ static Object *evaluate_expr(const Expr *expr) {
         }
 }
 
+static void execute_stmt(const Stmt *stmt);
+
+static void execute_print_stmt(const PrintStmt *print_stmt) {
+        printf("%s\n", stringify(evaluate_expr(print_stmt->expression)));
+}
+
+static void execute_stmt(const Stmt *stmt) {
+        switch (stmt->type) {
+        case STMT_PRINT:
+                execute_print_stmt((const PrintStmt *)stmt);
+                break;
+        }
+}
+
 void interpret_expr(const Expr *expr) {
         printf("%s\n", stringify(evaluate_expr(expr)));
+}
+
+void interpret_stmts(const Vector *statements) {
+        size_t num_statements = vector_size(statements);
+        for (size_t i = 0; i < num_statements; i++) {
+                execute_stmt(vector_at(statements, i));
+        }
 }
