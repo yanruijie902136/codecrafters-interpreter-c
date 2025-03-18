@@ -26,6 +26,10 @@ static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
         Object *left = evaluate_expr(binary_expr->left);
         Object *right = evaluate_expr(binary_expr->right);
         switch (binary_expr->operator->type) {
+        case TOKEN_MINUS:
+                return number_object_construct(object_as_number(left) - object_as_number(right));
+        case TOKEN_PLUS:
+                return number_object_construct(object_as_number(left) + object_as_number(right));
         case TOKEN_SLASH:
                 return number_object_construct(object_as_number(left) / object_as_number(right));
         case TOKEN_STAR:
