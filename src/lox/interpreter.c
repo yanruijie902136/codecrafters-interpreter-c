@@ -46,35 +46,53 @@ static void check_number_operand(const Token *operator, const Object *operand) {
         error(operator, "Operand must be a number.");
 }
 
+static void check_number_operands(const Token *operator, const Object *left, const Object *right) {
+        if (object_is_number(left) && object_is_number(right)) {
+                return;
+        }
+        error(operator, "Operands must be numbers.");
+}
+
 static Object *evaluate_expr(const Expr *expr);
 
 static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
         Object *left = evaluate_expr(binary_expr->left);
         Object *right = evaluate_expr(binary_expr->right);
-        switch (binary_expr->operator->type) {
+        Token *operator = binary_expr->operator;
+        switch (operator->type) {
         case TOKEN_BANG_EQUAL:
                 return boolean_object_construct(!object_equals(left, right));
         case TOKEN_EQUAL_EQUAL:
                 return boolean_object_construct(object_equals(left, right));
         case TOKEN_GREATER:
+                check_number_operands(operator, left, right);
                 return boolean_object_construct(object_as_number(left) > object_as_number(right));
         case TOKEN_GREATER_EQUAL:
+                check_number_operands(operator, left, right);
                 return boolean_object_construct(object_as_number(left) >= object_as_number(right));
         case TOKEN_LESS:
+                check_number_operands(operator, left, right);
                 return boolean_object_construct(object_as_number(left) < object_as_number(right));
         case TOKEN_LESS_EQUAL:
+                check_number_operands(operator, left, right);
                 return boolean_object_construct(object_as_number(left) <= object_as_number(right));
         case TOKEN_MINUS:
+                check_number_operands(operator, left, right);
                 return number_object_construct(object_as_number(left) - object_as_number(right));
         case TOKEN_PLUS:
                 if (object_is_string(left) && object_is_string(right)) {
                         char *s = concat(object_as_string(left), object_as_string(right));
                         return string_object_construct(s);
+                } else if (object_is_number(left) && object_is_number(right)) {
+                        return number_object_construct(object_as_number(left) + object_as_number(right));
+                } else {
+                        error(operator, "Operands must be two numbers or two strings.");
                 }
-                return number_object_construct(object_as_number(left) + object_as_number(right));
         case TOKEN_SLASH:
+                check_number_operands(operator, left, right);
                 return number_object_construct(object_as_number(left) / object_as_number(right));
         case TOKEN_STAR:
+                check_number_operands(operator, left, right);
                 return number_object_construct(object_as_number(left) * object_as_number(right));
         }
 }
@@ -89,11 +107,12 @@ static Object *evaluate_literal_expr(const LiteralExpr *literal_expr) {
 
 static Object *evaluate_unary_expr(const UnaryExpr *unary_expr) {
         Object *right = evaluate_expr(unary_expr->right);
-        switch (unary_expr->operator->type) {
+        Token *operator = unary_expr->operator;
+        switch (operator->type) {
         case TOKEN_BANG:
                 return boolean_object_construct(!object_is_truthy(right));
         case TOKEN_MINUS:
-                check_number_operand(unary_expr->operator, right);
+                check_number_operand(operator, right);
                 return number_object_construct(-object_as_number(right));
         }
 }
