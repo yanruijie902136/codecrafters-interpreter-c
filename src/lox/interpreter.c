@@ -22,6 +22,17 @@ static const char *stringify(const Object *object) {
 
 static Object *evaluate_expr(const Expr *expr);
 
+static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
+        Object *left = evaluate_expr(binary_expr->left);
+        Object *right = evaluate_expr(binary_expr->right);
+        switch (binary_expr->operator->type) {
+        case TOKEN_SLASH:
+                return number_object_construct(object_as_number(left) / object_as_number(right));
+        case TOKEN_STAR:
+                return number_object_construct(object_as_number(left) * object_as_number(right));
+        }
+}
+
 static Object *evaluate_grouping_expr(const GroupingExpr *grouping_expr) {
         return evaluate_expr(grouping_expr->expression);
 }
@@ -42,6 +53,8 @@ static Object *evaluate_unary_expr(const UnaryExpr *unary_expr) {
 
 static Object *evaluate_expr(const Expr *expr) {
         switch (expr->type) {
+        case EXPR_BINARY:
+                return evaluate_binary_expr((const BinaryExpr *)expr);
         case EXPR_GROUPING:
                 return evaluate_grouping_expr((const GroupingExpr *)expr);
         case EXPR_LITERAL:
