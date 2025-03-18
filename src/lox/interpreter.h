@@ -8,6 +8,6 @@
 void interpret_expr(const Expr *expr);
 void interpret_stmts(const Vector *statements);
 Environment *get_globals(void);
-void execute_block(Vector *statements, Environment *environment);
+Object *execute_block(Vector *statements, Environment *environment);
 
 #endif

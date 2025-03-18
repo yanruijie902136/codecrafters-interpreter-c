@@ -41,6 +41,14 @@ PrintStmt *print_stmt_construct(Expr *expression) {
         return print_stmt;
 }
 
+ReturnStmt *return_stmt_construct(Token *keyword, Expr *value) {
+        ReturnStmt *return_stmt = xmalloc(sizeof(ReturnStmt));
+        return_stmt->base.type = STMT_RETURN;
+        return_stmt->keyword = keyword;
+        return_stmt->value = value;
+        return return_stmt;
+}
+
 VarStmt *var_stmt_construct(Token *name, Expr *initializer) {
         VarStmt *var_stmt = xmalloc(sizeof(VarStmt));
         var_stmt->base.type = STMT_VAR;

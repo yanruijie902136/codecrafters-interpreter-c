@@ -69,6 +69,7 @@ static Stmt *statement(void);
 static Stmt *for_statement(void);
 static Stmt *if_statement(void);
 static Stmt *print_statement(void);
+static Stmt *return_statement(void);
 static Stmt *while_statement(void);
 static Stmt *expression_statement(void);
 static Vector *block(void);
@@ -291,6 +292,9 @@ static Stmt *statement(void) {
         if (match(TOKEN_PRINT)) {
                 return print_statement();
         }
+        if (match(TOKEN_RETURN)) {
+                return return_statement();
+        }
         if (match(TOKEN_WHILE)) {
                 return while_statement();
         }
@@ -378,6 +382,20 @@ static Stmt *print_statement(void) {
                 parse_error(peek(), "Expect ';' after value.");
         }
         return (Stmt *)print_stmt_construct(expr);
+}
+
+static Stmt *return_statement(void) {
+        Token *keyword = previous();
+
+        Expr *value = NULL;
+        if (!check(TOKEN_SEMICOLON)) {
+                value = expression();
+        }
+        if (!match(TOKEN_SEMICOLON)) {
+                parse_error(peek(), "Expect ';' after return value.");
+        }
+
+        return (Stmt *)return_stmt_construct(keyword, value);
 }
 
 static Stmt *while_statement(void) {

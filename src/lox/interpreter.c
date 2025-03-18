@@ -204,68 +204,79 @@ static Object *evaluate_expr(const Expr *expr) {
         }
 }
 
-static void execute_stmt(const Stmt *stmt);
+static Object *execute_stmt(const Stmt *stmt);
 
-static void execute_block_stmt(const BlockStmt *block_stmt) {
-        execute_block(block_stmt->statements, environment_construct(interpreter.environment));
+static Object *execute_block_stmt(const BlockStmt *block_stmt) {
+        return execute_block(block_stmt->statements, environment_construct(interpreter.environment));
 }
 
-static void execute_expression_stmt(const ExpressionStmt *expression_stmt) {
+static Object *execute_expression_stmt(const ExpressionStmt *expression_stmt) {
         evaluate_expr(expression_stmt->expression);
+        return NULL;
 }
 
-static void execute_function_stmt(const FunctionStmt *function_stmt) {
+static Object *execute_function_stmt(const FunctionStmt *function_stmt) {
         LoxFunction *function = lox_function_construct(function_stmt);
         Object *object = lox_callable_object_construct((LoxCallable *)function);
         environment_define(interpreter.environment, function_stmt->name->lexeme, object);
+        return NULL;
 }
 
-static void execute_if_stmt(const IfStmt *if_stmt) {
+static Object *execute_if_stmt(const IfStmt *if_stmt) {
         if (object_is_truthy(evaluate_expr(if_stmt->condition))) {
-                execute_stmt(if_stmt->then_branch);
+                return execute_stmt(if_stmt->then_branch);
         } else if (if_stmt->else_branch != NULL) {
-                execute_stmt(if_stmt->else_branch);
+                return execute_stmt(if_stmt->else_branch);
         }
+        return NULL;
 }
 
-static void execute_print_stmt(const PrintStmt *print_stmt) {
+static Object *execute_print_stmt(const PrintStmt *print_stmt) {
         printf("%s\n", stringify(evaluate_expr(print_stmt->expression)));
+        return NULL;
 }
 
-static void execute_var_stmt(const VarStmt *var_stmt) {
+static Object *execute_return_stmt(const ReturnStmt *return_stmt) {
+        if (return_stmt->value == NULL) {
+                return nil_object_construct();
+        }
+        return evaluate_expr(return_stmt->value);
+}
+
+static Object *execute_var_stmt(const VarStmt *var_stmt) {
         Object *value = var_stmt->initializer == NULL ? nil_object_construct() : evaluate_expr(var_stmt->initializer);
         environment_define(interpreter.environment, var_stmt->name->lexeme, value);
+        return NULL;
 }
 
-static void execute_while_stmt(const WhileStmt *while_stmt) {
+static Object *execute_while_stmt(const WhileStmt *while_stmt) {
         while (object_is_truthy(evaluate_expr(while_stmt->condition))) {
-                execute_stmt(while_stmt->body);
+                Object *result = execute_stmt(while_stmt->body);
+                if (result != NULL) {
+                        return result;
+                }
         }
+        return NULL;
 }
 
-static void execute_stmt(const Stmt *stmt) {
+static Object * execute_stmt(const Stmt *stmt) {
         switch (stmt->type) {
         case STMT_BLOCK:
-                execute_block_stmt((const BlockStmt *)stmt);
-                break;
+                return execute_block_stmt((const BlockStmt *)stmt);
         case STMT_EXPRESSION:
-                execute_expression_stmt((const ExpressionStmt *)stmt);
-                break;
+                return execute_expression_stmt((const ExpressionStmt *)stmt);
         case STMT_FUNCTION:
-                execute_function_stmt((const FunctionStmt *)stmt);
-                break;
+                return execute_function_stmt((const FunctionStmt *)stmt);
         case STMT_IF:
-                execute_if_stmt((const IfStmt *)stmt);
-                break;
+                return execute_if_stmt((const IfStmt *)stmt);
         case STMT_PRINT:
-                execute_print_stmt((const PrintStmt *)stmt);
-                break;
+                return execute_print_stmt((const PrintStmt *)stmt);
+        case STMT_RETURN:
+                return execute_return_stmt((const ReturnStmt *)stmt);
         case STMT_VAR:
-                execute_var_stmt((const VarStmt *)stmt);
-                break;
+                return execute_var_stmt((const VarStmt *)stmt);
         case STMT_WHILE:
-                execute_while_stmt((const WhileStmt *)stmt);
-                break;
+                return execute_while_stmt((const WhileStmt *)stmt);
         }
 }
 
@@ -286,14 +297,19 @@ Environment *get_globals(void) {
         return interpreter.globals;
 }
 
-void execute_block(Vector *statements, Environment *environment) {
+Object *execute_block(Vector *statements, Environment *environment) {
         Environment *previous = interpreter.environment;
         interpreter.environment = environment;
 
+        Object *result = NULL;
         size_t num_statements = vector_size(statements);
         for (size_t i = 0; i < num_statements; i++) {
-                execute_stmt(vector_at(statements, i));
+                result = execute_stmt(vector_at(statements, i));
+                if (result != NULL) {
+                        break;
+                }
         }
 
         interpreter.environment = previous;
+        return result;
 }

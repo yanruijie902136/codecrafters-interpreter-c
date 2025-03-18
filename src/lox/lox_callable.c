@@ -51,8 +51,11 @@ static Object *lox_function_call(LoxFunction *lox_function, Vector *arguments) {
                 environment_define(environment, param->lexeme, vector_at(arguments, i));
         }
 
-        execute_block(lox_function->declaration->body, environment);
-        return nil_object_construct();
+        Object *result = execute_block(lox_function->declaration->body, environment);
+        if (result == NULL) {
+                result = nil_object_construct();
+        }
+        return result;
 }
 
 Object *lox_callable_call(LoxCallable *callable, Vector *arguments) {

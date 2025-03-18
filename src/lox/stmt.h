@@ -11,6 +11,7 @@ typedef enum {
         STMT_FUNCTION,
         STMT_IF,
         STMT_PRINT,
+        STMT_RETURN,
         STMT_VAR,
         STMT_WHILE,
 } StmtType;
@@ -57,6 +58,14 @@ typedef struct {
 } PrintStmt;
 
 PrintStmt *print_stmt_construct(Expr *expression);
+
+typedef struct {
+        Stmt base;
+        Token *keyword;
+        Expr *value;
+} ReturnStmt;
+
+ReturnStmt *return_stmt_construct(Token *keyword, Expr *value);
 
 typedef struct {
         Stmt base;
