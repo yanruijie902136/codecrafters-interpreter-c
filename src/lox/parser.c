@@ -5,7 +5,6 @@
 #include "lox/token.h"
 #include "lox/object.h"
 
-#include <stdarg.h>
 #include <stdio.h>
 
 static struct {
@@ -61,6 +60,7 @@ static Expr *primary(void);
 static Stmt *declaration(void);
 static Stmt *var_declaration(void);
 static Stmt *statement(void);
+static Stmt *if_statement(void);
 static Stmt *print_statement(void);
 static Stmt *expression_statement(void);
 static Vector *block(void);
@@ -187,6 +187,9 @@ static Stmt *var_declaration(void) {
 }
 
 static Stmt *statement(void) {
+        if (match(TOKEN_IF)) {
+                return if_statement();
+        }
         if (match(TOKEN_PRINT)) {
                 return print_statement();
         }
@@ -194,6 +197,24 @@ static Stmt *statement(void) {
                 return (Stmt *)block_stmt_construct(block());
         }
         return expression_statement();
+}
+
+static Stmt *if_statement(void) {
+        if (!match(TOKEN_LEFT_PAREN)) {
+                parse_error(peek(), "Expect '(' after 'if'.");
+        }
+        Expr *condition = expression();
+        if (!match(TOKEN_RIGHT_PAREN)) {
+                parse_error(peek(), "Expect ')' after if condition.");
+        }
+
+        Stmt *then_branch = statement();
+        Stmt *else_branch = NULL;
+        if (match(TOKEN_ELSE)) {
+                else_branch = statement();
+        }
+
+        return (Stmt *)if_stmt_construct(condition, then_branch, else_branch);
 }
 
 static Stmt *print_statement(void) {

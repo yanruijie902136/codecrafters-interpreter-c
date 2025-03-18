@@ -7,6 +7,7 @@
 typedef enum {
         STMT_BLOCK,
         STMT_EXPRESSION,
+        STMT_IF,
         STMT_PRINT,
         STMT_VAR,
 } StmtType;
@@ -28,6 +29,15 @@ typedef struct {
 } ExpressionStmt;
 
 ExpressionStmt *expression_stmt_construct(Expr *expression);
+
+typedef struct {
+        Stmt base;
+        Expr *condition;
+        Stmt *then_branch;
+        Stmt *else_branch;
+} IfStmt;
+
+IfStmt *if_stmt_construct(Expr *condition, Stmt *then_branch, Stmt *else_branch);
 
 typedef struct {
         Stmt base;

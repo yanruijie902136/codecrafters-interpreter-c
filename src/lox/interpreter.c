@@ -7,7 +7,6 @@
 #include "util/xmalloc.h"
 
 #include <err.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -175,6 +174,14 @@ static void execute_expression_stmt(const ExpressionStmt *expression_stmt) {
         evaluate_expr(expression_stmt->expression);
 }
 
+static void execute_if_stmt(const IfStmt *if_stmt) {
+        if (object_is_truthy(evaluate_expr(if_stmt->condition))) {
+                execute_stmt(if_stmt->then_branch);
+        } else if (if_stmt->else_branch != NULL) {
+                execute_stmt(if_stmt->else_branch);
+        }
+}
+
 static void execute_print_stmt(const PrintStmt *print_stmt) {
         printf("%s\n", stringify(evaluate_expr(print_stmt->expression)));
 }
@@ -191,6 +198,9 @@ static void execute_stmt(const Stmt *stmt) {
                 break;
         case STMT_EXPRESSION:
                 execute_expression_stmt((const ExpressionStmt *)stmt);
+                break;
+        case STMT_IF:
+                execute_if_stmt((const IfStmt *)stmt);
                 break;
         case STMT_PRINT:
                 execute_print_stmt((const PrintStmt *)stmt);

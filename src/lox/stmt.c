@@ -16,6 +16,15 @@ ExpressionStmt *expression_stmt_construct(Expr *expression) {
         return expression_stmt;
 }
 
+IfStmt *if_stmt_construct(Expr *condition, Stmt *then_branch, Stmt *else_branch) {
+        IfStmt *if_stmt = xmalloc(sizeof(IfStmt));
+        if_stmt->base.type = STMT_IF;
+        if_stmt->condition = condition;
+        if_stmt->then_branch = then_branch;
+        if_stmt->else_branch = else_branch;
+        return if_stmt;
+}
+
 PrintStmt *print_stmt_construct(Expr *expression) {
         PrintStmt *print_stmt = xmalloc(sizeof(PrintStmt));
         print_stmt->base.type = STMT_PRINT;
