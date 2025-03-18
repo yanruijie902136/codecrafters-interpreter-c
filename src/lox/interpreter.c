@@ -2,8 +2,10 @@
 #include "lox/environment.h"
 #include "lox/errors.h"
 #include "lox/expr.h"
+#include "lox/lox_callable.h"
 #include "lox/object.h"
 #include "lox/stmt.h"
+#include "util/vector.h"
 #include "util/xmalloc.h"
 
 #include <err.h>
@@ -19,6 +21,9 @@ static struct {
 static void init(void) {
         interpreter.globals = environment_construct(NULL);
         interpreter.environment = interpreter.globals;
+
+        LoxClock *lox_clock = lox_clock_construct();
+        environment_define(interpreter.globals, "clock", lox_callable_object_construct((LoxCallable *)lox_clock));
 }
 
 static const char *stringify(const Object *object) {
@@ -109,6 +114,29 @@ static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
         }
 }
 
+static Object *evaluate_call_expr(const CallExpr *call_expr) {
+        Object *callee = evaluate_expr(call_expr->callee);
+
+        Vector *arguments = vector_construct();
+        size_t num_arguments = vector_size(call_expr->arguments);
+        for (size_t i = 0; i < num_arguments; i++) {
+                Expr *argument = vector_at(call_expr->arguments, i);
+                vector_push_back(arguments, evaluate_expr(argument));
+        }
+
+        if (!object_is_lox_callable(callee)) {
+                interpret_error(call_expr->paren, "Can only call functions and classes.");
+        }
+        LoxCallable *function = object_as_lox_callable(callee);
+
+        size_t arity = lox_callable_arity(function);
+        if (num_arguments != arity) {
+                parse_error(call_expr->paren, "Expected %zu arguments but got %zu.", arity, num_arguments);
+        }
+
+        return lox_callable_call(function);
+}
+
 static Object *evaluate_grouping_expr(const GroupingExpr *grouping_expr) {
         return evaluate_expr(grouping_expr->expression);
 }
@@ -161,6 +189,8 @@ static Object *evaluate_expr(const Expr *expr) {
                 return evaluate_assign_expr((const AssignExpr *)expr);
         case EXPR_BINARY:
                 return evaluate_binary_expr((const BinaryExpr *)expr);
+        case EXPR_CALL:
+                return evaluate_call_expr((const CallExpr *)expr);
         case EXPR_GROUPING:
                 return evaluate_grouping_expr((const GroupingExpr *)expr);
         case EXPR_LITERAL:

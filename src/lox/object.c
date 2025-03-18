@@ -1,4 +1,5 @@
 #include "lox/object.h"
+#include "lox/lox_callable.h"
 #include "util/xmalloc.h"
 
 #include <assert.h>
@@ -8,6 +9,7 @@
 
 typedef enum {
         OBJECT_BOOLEAN,
+        OBJECT_LOX_CALLABLE,
         OBJECT_NIL,
         OBJECT_NUMBER,
         OBJECT_STRING,
@@ -19,6 +21,7 @@ struct Object {
                 bool boolean;
                 double number;
                 char *string;
+                LoxCallable *callable;
         } data;
 };
 
@@ -40,6 +43,13 @@ Object *boolean_object_construct(bool boolean) {
                 false_object->data.boolean = false;
         }
         return false_object;
+}
+
+Object *lox_callable_object_construct(LoxCallable *callable) {
+        Object *object = xmalloc(sizeof(Object));
+        object->type = OBJECT_LOX_CALLABLE;
+        object->data.callable = callable;
+        return object;
 }
 
 Object *nil_object_construct(void) {
@@ -79,6 +89,8 @@ const char *object_to_string(const Object *object) {
         switch (object->type) {
         case OBJECT_BOOLEAN:
                 return object->data.boolean ? "true" : "false";
+        case OBJECT_LOX_CALLABLE:
+                return lox_callable_to_string(object->data.callable);
         case OBJECT_NIL:
                 return "nil";
         case OBJECT_NUMBER:
@@ -125,7 +137,6 @@ double object_as_number(const Object *object) {
         return object->data.number;
 }
 
-
 bool object_is_string(const Object *object) {
         return object->type == OBJECT_STRING;
 }
@@ -133,4 +144,13 @@ bool object_is_string(const Object *object) {
 const char *object_as_string(const Object *object) {
         assert(object_is_string(object));
         return object->data.string;
+}
+
+bool object_is_lox_callable(const Object *object) {
+        return object->type == OBJECT_LOX_CALLABLE;
+}
+
+LoxCallable *object_as_lox_callable(const Object *object) {
+        assert(object_is_lox_callable(object));
+        return object->data.callable;
 }

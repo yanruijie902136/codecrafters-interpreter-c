@@ -3,10 +3,12 @@
 
 #include "lox/token.h"
 #include "lox/object.h"
+#include "util/vector.h"
 
 typedef enum {
         EXPR_ASSIGN,
         EXPR_BINARY,
+        EXPR_CALL,
         EXPR_GROUPING,
         EXPR_LITERAL,
         EXPR_LOGICAL,
@@ -34,6 +36,15 @@ typedef struct {
 } BinaryExpr;
 
 BinaryExpr *binary_expr_construct(Expr *left, Token *operator, Expr *right);
+
+typedef struct {
+        Expr base;
+        Expr *callee;
+        Token *paren;
+        Vector *arguments;
+} CallExpr;
+
+CallExpr *call_expr_construct(Expr *callee, Token *paren, Vector *arguments);
 
 typedef struct {
         Expr base;

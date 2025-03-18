@@ -58,6 +58,8 @@ static Expr *comparison(void);
 static Expr *term(void);
 static Expr *factor(void);
 static Expr *unary(void);
+static Expr *call(void);
+static Expr *finish_call(Expr *callee);
 static Expr *primary(void);
 
 static Stmt *declaration(void);
@@ -154,7 +156,38 @@ static Expr *unary(void) {
                 Expr *right = unary();
                 return (Expr *)unary_expr_construct(operator, right);
         }
-        return primary();
+        return call();
+}
+
+static Expr *call(void) {
+        Expr *expr = primary();
+        for ( ; ; ) {
+                if (match(TOKEN_LEFT_PAREN)) {
+                        expr = finish_call(expr);
+                } else {
+                        break;
+                }
+        }
+        return expr;
+}
+
+static Expr *finish_call(Expr *callee) {
+        Vector *arguments = vector_construct();
+        if (!check(TOKEN_RIGHT_PAREN)) {
+                do {
+                        if (vector_size(arguments) >= 255) {
+                                parse_error(peek(), "Can't have more than 255 arguments.");
+                        }
+                        vector_push_back(arguments, expression());
+                } while (match(TOKEN_COMMA));
+        }
+
+        if (!match(TOKEN_RIGHT_PAREN)) {
+                parse_error(peek(), "Expect ')' after arguments.");
+        }
+        Token *paren = previous();
+
+        return (Expr *)call_expr_construct(callee, paren, arguments);
 }
 
 static Expr *primary(void) {

@@ -18,6 +18,15 @@ BinaryExpr *binary_expr_construct(Expr *left, Token *operator, Expr *right) {
         return binary_expr;
 }
 
+CallExpr *call_expr_construct(Expr *callee, Token *paren, Vector *arguments) {
+        CallExpr *call_expr = xmalloc(sizeof(CallExpr));
+        call_expr->base.type = EXPR_CALL;
+        call_expr->callee = callee;
+        call_expr->paren = paren;
+        call_expr->arguments = arguments;
+        return call_expr;
+}
+
 GroupingExpr *grouping_expr_construct(Expr *expression) {
         GroupingExpr *grouping_expr = xmalloc(sizeof(GroupingExpr));
         grouping_expr->base.type = EXPR_GROUPING;
