@@ -50,6 +50,8 @@ static bool match(TokenType type) {
 
 static Expr *expression(void);
 static Expr *assignment(void);
+static Expr *or(void);
+static Expr *and(void);
 static Expr *equality(void);
 static Expr *comparison(void);
 static Expr *term(void);
@@ -70,20 +72,36 @@ static Expr *expression(void) {
 }
 
 static Expr *assignment(void) {
-        Expr *expr = equality();
-
+        Expr *expr = or();
         if (match(TOKEN_EQUAL)) {
                 Token *equals = previous();
                 Expr *value = assignment();
-
                 if (expr->type == EXPR_VARIABLE) {
                         Token *name = ((VariableExpr *)expr)->name;
                         return (Expr *)assign_expr_construct(name, value);
                 }
-
                 parse_error(equals, "Invalid assignment target.");
         }
+        return expr;
+}
 
+static Expr *or(void) {
+        Expr *expr = and();
+        while (match(TOKEN_OR)) {
+                Token *operator = previous();
+                Expr *right = and();
+                expr = (Expr *)logical_expr_construct(expr, operator, right);
+        }
+        return expr;
+}
+
+static Expr *and(void) {
+        Expr *expr = equality();
+        while (match(TOKEN_AND)) {
+                Token *operator = previous();
+                Expr *right = equality();
+                expr = (Expr *)logical_expr_construct(expr, operator, right);
+        }
         return expr;
 }
 
@@ -91,7 +109,8 @@ static Expr *equality(void) {
         Expr *expr = comparison();
         while (match(TOKEN_BANG_EQUAL) || match(TOKEN_EQUAL_EQUAL)) {
                 Token *operator = previous();
-                expr = (Expr *)binary_expr_construct(expr, operator, comparison());
+                Expr *right = comparison();
+                expr = (Expr *)binary_expr_construct(expr, operator, right);
         }
         return expr;
 }
@@ -100,7 +119,8 @@ static Expr *comparison(void) {
         Expr *expr = term();
         while (match(TOKEN_GREATER) || match(TOKEN_GREATER_EQUAL) || match(TOKEN_LESS) || match(TOKEN_LESS_EQUAL)) {
                 Token *operator = previous();
-                expr = (Expr *)binary_expr_construct(expr, operator, term());
+                Expr *right = term();
+                expr = (Expr *)binary_expr_construct(expr, operator, right);
         }
         return expr;
 }
@@ -109,7 +129,8 @@ static Expr *term(void) {
         Expr *expr = factor();
         while (match(TOKEN_MINUS) || match(TOKEN_PLUS)) {
                 Token *operator = previous();
-                expr = (Expr *)binary_expr_construct(expr, operator, factor());
+                Expr *right = factor();
+                expr = (Expr *)binary_expr_construct(expr, operator, right);
         }
         return expr;
 }
@@ -118,7 +139,8 @@ static Expr *factor(void) {
         Expr *expr = unary();
         while (match(TOKEN_SLASH) || match(TOKEN_STAR)) {
                 Token *operator = previous();
-                expr = (Expr *)binary_expr_construct(expr, operator, unary());
+                Expr *right = unary();
+                expr = (Expr *)binary_expr_construct(expr, operator, right);
         }
         return expr;
 }
@@ -126,7 +148,8 @@ static Expr *factor(void) {
 static Expr *unary(void) {
         if (match(TOKEN_BANG) || match(TOKEN_MINUS)) {
                 Token *operator = previous();
-                return (Expr *)unary_expr_construct(operator, unary());
+                Expr *right = unary();
+                return (Expr *)unary_expr_construct(operator, right);
         }
         return primary();
 }

@@ -9,6 +9,7 @@ typedef enum {
         EXPR_BINARY,
         EXPR_GROUPING,
         EXPR_LITERAL,
+        EXPR_LOGICAL,
         EXPR_UNARY,
         EXPR_VARIABLE,
 } ExprType;
@@ -47,6 +48,15 @@ typedef struct {
 } LiteralExpr;
 
 LiteralExpr *literal_expr_construct(Object *value);
+
+typedef struct {
+        Expr base;
+        Expr *left;
+        Token *operator;
+        Expr *right;
+} LogicalExpr;
+
+LogicalExpr *logical_expr_construct(Expr *left, Token *operator, Expr *right);
 
 typedef struct {
         Expr base;

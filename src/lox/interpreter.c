@@ -117,6 +117,26 @@ static Object *evaluate_literal_expr(const LiteralExpr *literal_expr) {
         return literal_expr->value;
 }
 
+static Object *evaluate_logical_expr(const LogicalExpr *logical_expr) {
+        Object *left = evaluate_expr(logical_expr->left);
+        Token *operator = logical_expr->operator;
+        switch (operator->type) {
+        case TOKEN_AND:
+                if (!object_is_truthy(left)) {
+                        return left;
+                }
+                break;
+        case TOKEN_OR:
+                if (object_is_truthy(left)) {
+                        return left;
+                }
+                break;
+        default:
+                errx(EXIT_FAILURE, "unexpected operator");
+        }
+        return evaluate_expr(logical_expr->right);
+}
+
 static Object *evaluate_unary_expr(const UnaryExpr *unary_expr) {
         Object *right = evaluate_expr(unary_expr->right);
         Token *operator = unary_expr->operator;
@@ -145,6 +165,8 @@ static Object *evaluate_expr(const Expr *expr) {
                 return evaluate_grouping_expr((const GroupingExpr *)expr);
         case EXPR_LITERAL:
                 return evaluate_literal_expr((const LiteralExpr *)expr);
+        case EXPR_LOGICAL:
+                return evaluate_logical_expr((const LogicalExpr *)expr);
         case EXPR_UNARY:
                 return evaluate_unary_expr((const UnaryExpr *)expr);
         case EXPR_VARIABLE:

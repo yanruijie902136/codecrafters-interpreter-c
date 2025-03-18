@@ -32,6 +32,15 @@ LiteralExpr *literal_expr_construct(Object *value) {
         return literal_expr;
 }
 
+LogicalExpr *logical_expr_construct(Expr *left, Token *operator, Expr *right) {
+        LogicalExpr *logical_expr = xmalloc(sizeof(LogicalExpr));
+        logical_expr->base.type = EXPR_LOGICAL;
+        logical_expr->left = left;
+        logical_expr->operator = operator;
+        logical_expr->right = right;
+        return logical_expr;
+}
+
 UnaryExpr *unary_expr_construct(Token *operator, Expr *right) {
         UnaryExpr *unary_expr = xmalloc(sizeof(UnaryExpr));
         unary_expr->base.type = EXPR_UNARY;
