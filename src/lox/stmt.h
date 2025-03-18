@@ -10,6 +10,7 @@ typedef enum {
         STMT_IF,
         STMT_PRINT,
         STMT_VAR,
+        STMT_WHILE,
 } StmtType;
 
 typedef struct {
@@ -53,5 +54,13 @@ typedef struct {
 } VarStmt;
 
 VarStmt *var_stmt_construct(Token *name, Expr *initializer);
+
+typedef struct {
+        Stmt base;
+        Expr *condition;
+        Stmt *body;
+} WhileStmt;
+
+WhileStmt *while_stmt_construct(Expr *condition, Stmt *body);
 
 #endif

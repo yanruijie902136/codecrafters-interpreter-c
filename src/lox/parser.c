@@ -64,6 +64,7 @@ static Stmt *var_declaration(void);
 static Stmt *statement(void);
 static Stmt *if_statement(void);
 static Stmt *print_statement(void);
+static Stmt *while_statement(void);
 static Stmt *expression_statement(void);
 static Vector *block(void);
 
@@ -216,6 +217,9 @@ static Stmt *statement(void) {
         if (match(TOKEN_PRINT)) {
                 return print_statement();
         }
+        if (match(TOKEN_WHILE)) {
+                return while_statement();
+        }
         if (match(TOKEN_LEFT_BRACE)) {
                 return (Stmt *)block_stmt_construct(block());
         }
@@ -246,6 +250,18 @@ static Stmt *print_statement(void) {
                 parse_error(peek(), "Expect ';' after value.");
         }
         return (Stmt *)print_stmt_construct(expr);
+}
+
+static Stmt *while_statement(void) {
+        if (!match(TOKEN_LEFT_PAREN)) {
+                parse_error(peek(), "Expect '(' after 'while'.");
+        }
+        Expr *condition = expression();
+        if (!match(TOKEN_RIGHT_PAREN)) {
+                parse_error(peek(), "Expect ')' after condition.");
+        }
+        Stmt *body = statement();
+        return (Stmt *)while_stmt_construct(condition, body);
 }
 
 static Stmt *expression_statement(void) {

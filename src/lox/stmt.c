@@ -39,3 +39,11 @@ VarStmt *var_stmt_construct(Token *name, Expr *initializer) {
         var_stmt->initializer = initializer;
         return var_stmt;
 }
+
+WhileStmt *while_stmt_construct(Expr *condition, Stmt *body) {
+        WhileStmt *while_stmt = xmalloc(sizeof(WhileStmt));
+        while_stmt->base.type = STMT_WHILE;
+        while_stmt->condition = condition;
+        while_stmt->body = body;
+        return while_stmt;
+}

@@ -213,6 +213,12 @@ static void execute_var_stmt(const VarStmt *var_stmt) {
         environment_define(interpreter.environment, var_stmt->name->lexeme, value);
 }
 
+static void execute_while_stmt(const WhileStmt *while_stmt) {
+        while (object_is_truthy(evaluate_expr(while_stmt->condition))) {
+                execute_stmt(while_stmt->body);
+        }
+}
+
 static void execute_stmt(const Stmt *stmt) {
         switch (stmt->type) {
         case STMT_BLOCK:
@@ -229,6 +235,9 @@ static void execute_stmt(const Stmt *stmt) {
                 break;
         case STMT_VAR:
                 execute_var_stmt((const VarStmt *)stmt);
+                break;
+        case STMT_WHILE:
+                execute_while_stmt((const WhileStmt *)stmt);
                 break;
         }
 }
