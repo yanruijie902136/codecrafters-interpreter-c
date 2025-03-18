@@ -131,7 +131,7 @@ static Object *evaluate_call_expr(const CallExpr *call_expr) {
 
         size_t arity = lox_callable_arity(function);
         if (num_arguments != arity) {
-                parse_error(call_expr->paren, "Expected %zu arguments but got %zu.", arity, num_arguments);
+                interpret_error(call_expr->paren, "Expected %zu arguments but got %zu.", arity, num_arguments);
         }
 
         return lox_callable_call(function, arguments);
