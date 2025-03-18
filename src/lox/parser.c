@@ -4,6 +4,7 @@
 #include "lox/stmt.h"
 #include "lox/token.h"
 #include "lox/object.h"
+#include "util/vector.h"
 
 #include <stdio.h>
 
@@ -62,6 +63,7 @@ static Expr *primary(void);
 static Stmt *declaration(void);
 static Stmt *var_declaration(void);
 static Stmt *statement(void);
+static Stmt *for_statement(void);
 static Stmt *if_statement(void);
 static Stmt *print_statement(void);
 static Stmt *while_statement(void);
@@ -211,6 +213,9 @@ static Stmt *var_declaration(void) {
 }
 
 static Stmt *statement(void) {
+        if (match(TOKEN_FOR)) {
+                return for_statement();
+        }
         if (match(TOKEN_IF)) {
                 return if_statement();
         }
@@ -224,6 +229,60 @@ static Stmt *statement(void) {
                 return (Stmt *)block_stmt_construct(block());
         }
         return expression_statement();
+}
+
+static Stmt *for_statement(void) {
+        if (!match(TOKEN_LEFT_PAREN)) {
+                parse_error(peek(), "Expect '(' after 'for'.");
+        }
+
+        Stmt *initializer;
+        if (match(TOKEN_SEMICOLON)) {
+                initializer = NULL;
+        } else if (match(TOKEN_VAR)) {
+                initializer = var_declaration();
+        } else {
+                initializer = expression_statement();
+        }
+
+        Expr *condition = NULL;
+        if (!check(TOKEN_SEMICOLON)) {
+                condition = expression();
+        }
+        if (!match(TOKEN_SEMICOLON)) {
+                parse_error(peek(), "Expect ';' after loop condition.");
+        }
+
+        Expr *increment = NULL;
+        if (!check(TOKEN_RIGHT_PAREN)) {
+                increment = expression();
+        }
+        if (!match(TOKEN_RIGHT_PAREN)) {
+                parse_error(peek(), "Expect ')' after for clauses.");
+        }
+
+        Stmt *body = statement();
+
+        if (increment != NULL) {
+                Vector *statements = vector_construct();
+                vector_push_back(statements, body);
+                vector_push_back(statements, expression_stmt_construct(increment));
+                body = (Stmt *)block_stmt_construct(statements);
+        }
+
+        if (condition == NULL) {
+                condition = (Expr *)literal_expr_construct(boolean_object_construct(true));
+        }
+        body = (Stmt *)while_stmt_construct(condition, body);
+
+        if (initializer != NULL) {
+                Vector *statements = vector_construct();
+                vector_push_back(statements, initializer);
+                vector_push_back(statements, body);
+                body = (Stmt *)block_stmt_construct(statements);
+        }
+
+        return body;
 }
 
 static Stmt *if_statement(void) {
