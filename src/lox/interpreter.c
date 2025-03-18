@@ -125,12 +125,19 @@ static Object *evaluate_expr(const Expr *expr) {
 
 static void execute_stmt(const Stmt *stmt);
 
+static void execute_expression_stmt(const ExpressionStmt *expression_stmt) {
+        evaluate_expr(expression_stmt->expression);
+}
+
 static void execute_print_stmt(const PrintStmt *print_stmt) {
         printf("%s\n", stringify(evaluate_expr(print_stmt->expression)));
 }
 
 static void execute_stmt(const Stmt *stmt) {
         switch (stmt->type) {
+        case STMT_EXPRESSION:
+                execute_expression_stmt((const ExpressionStmt *)stmt);
+                break;
         case STMT_PRINT:
                 execute_print_stmt((const PrintStmt *)stmt);
                 break;

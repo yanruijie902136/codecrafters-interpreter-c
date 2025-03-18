@@ -4,12 +4,20 @@
 #include "lox/expr.h"
 
 typedef enum {
+        STMT_EXPRESSION,
         STMT_PRINT,
 } StmtType;
 
 typedef struct {
         StmtType type;
 } Stmt;
+
+typedef struct {
+        Stmt base;
+        Expr *expression;
+} ExpressionStmt;
+
+ExpressionStmt *expression_stmt_construct(Expr *expression);
 
 typedef struct {
         Stmt base;

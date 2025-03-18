@@ -59,6 +59,7 @@ static Expr *primary(void);
 
 static Stmt *statement(void);
 static Stmt *print_statement(void);
+static Stmt *expression_statement(void);
 
 static Expr *expression(void) {
         return equality();
@@ -138,6 +139,7 @@ static Stmt *statement(void) {
         if (match(TOKEN_PRINT)) {
                 return print_statement();
         }
+        return expression_statement();
 }
 
 static Stmt *print_statement(void) {
@@ -146,6 +148,14 @@ static Stmt *print_statement(void) {
                 parse_error(peek(), "Expect ';' after value.");
         }
         return (Stmt *)print_stmt_construct(expr);
+}
+
+static Stmt *expression_statement(void) {
+        Expr *expr = expression();
+        if (!match(TOKEN_SEMICOLON)) {
+                parse_error(peek(), "Expect ';' after expression.");
+        }
+        return (Stmt *)expression_stmt_construct(expr);
 }
 
 Expr *parse_expr(const Vector *tokens) {
