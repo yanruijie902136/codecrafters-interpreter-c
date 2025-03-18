@@ -2,6 +2,13 @@
 #include "lox/expr.h"
 #include "util/xmalloc.h"
 
+BlockStmt *block_stmt_construct(Vector *statements) {
+        BlockStmt *block_stmt = xmalloc(sizeof(BlockStmt));
+        block_stmt->base.type = STMT_BLOCK;
+        block_stmt->statements = statements;
+        return block_stmt;
+}
+
 ExpressionStmt *expression_stmt_construct(Expr *expression) {
         ExpressionStmt *expression_stmt = xmalloc(sizeof(ExpressionStmt));
         expression_stmt->base.type = STMT_EXPRESSION;

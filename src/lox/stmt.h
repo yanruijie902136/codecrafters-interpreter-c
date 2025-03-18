@@ -2,8 +2,10 @@
 #define CODECRAFTERS_INTERPRETER_LOX_STMT_H
 
 #include "lox/expr.h"
+#include "util/vector.h"
 
 typedef enum {
+        STMT_BLOCK,
         STMT_EXPRESSION,
         STMT_PRINT,
         STMT_VAR,
@@ -12,6 +14,13 @@ typedef enum {
 typedef struct {
         StmtType type;
 } Stmt;
+
+typedef struct {
+        Stmt base;
+        Vector *statements;
+} BlockStmt;
+
+BlockStmt *block_stmt_construct(Vector *statements);
 
 typedef struct {
         Stmt base;

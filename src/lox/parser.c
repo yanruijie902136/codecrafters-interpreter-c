@@ -63,6 +63,7 @@ static Stmt *var_declaration(void);
 static Stmt *statement(void);
 static Stmt *print_statement(void);
 static Stmt *expression_statement(void);
+static Vector *block(void);
 
 static Expr *expression(void) {
         return assignment();
@@ -189,6 +190,9 @@ static Stmt *statement(void) {
         if (match(TOKEN_PRINT)) {
                 return print_statement();
         }
+        if (match(TOKEN_LEFT_BRACE)) {
+                return (Stmt *)block_stmt_construct(block());
+        }
         return expression_statement();
 }
 
@@ -206,6 +210,17 @@ static Stmt *expression_statement(void) {
                 parse_error(peek(), "Expect ';' after expression.");
         }
         return (Stmt *)expression_stmt_construct(expr);
+}
+
+static Vector *block(void) {
+        Vector *statements = vector_construct();
+        while (!check(TOKEN_RIGHT_BRACE) && !is_at_end()) {
+                vector_push_back(statements, declaration());
+        }
+        if (!match(TOKEN_RIGHT_BRACE)) {
+                parse_error(peek(), "Expect '}' after block.");
+        }
+        return statements;
 }
 
 Expr *parse_expr(const Vector *tokens) {

@@ -13,11 +13,13 @@
 #include <string.h>
 
 static struct {
+        Environment *globals;
         Environment *environment;
 } interpreter;
 
 static void init(void) {
-        interpreter.environment = environment_construct();
+        interpreter.globals = environment_construct(NULL);
+        interpreter.environment = interpreter.globals;
 }
 
 static const char *stringify(const Object *object) {
@@ -153,6 +155,22 @@ static Object *evaluate_expr(const Expr *expr) {
 
 static void execute_stmt(const Stmt *stmt);
 
+static void execute_block(Vector *statements, Environment *environment) {
+        Environment *previous = interpreter.environment;
+        interpreter.environment = environment;
+
+        size_t num_statements = vector_size(statements);
+        for (size_t i = 0; i < num_statements; i++) {
+                execute_stmt(vector_at(statements, i));
+        }
+
+        interpreter.environment = previous;
+}
+
+static void execute_block_stmt(const BlockStmt *block_stmt) {
+        execute_block(block_stmt->statements, environment_construct(interpreter.environment));
+}
+
 static void execute_expression_stmt(const ExpressionStmt *expression_stmt) {
         evaluate_expr(expression_stmt->expression);
 }
@@ -168,6 +186,9 @@ static void execute_var_stmt(const VarStmt *var_stmt) {
 
 static void execute_stmt(const Stmt *stmt) {
         switch (stmt->type) {
+        case STMT_BLOCK:
+                execute_block_stmt((const BlockStmt *)stmt);
+                break;
         case STMT_EXPRESSION:
                 execute_expression_stmt((const ExpressionStmt *)stmt);
                 break;

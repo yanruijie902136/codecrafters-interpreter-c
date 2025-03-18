@@ -86,20 +86,25 @@ static Node *search(Node *root, const char *name) {
 
 struct Environment {
         Node *root;
+        Environment *enclosing;
 };
 
-Environment *environment_construct(void) {
+Environment *environment_construct(Environment *enclosing) {
         Environment *environment = xmalloc(sizeof(Environment));
         environment->root = NULL;
+        environment->enclosing = enclosing;
         return environment;
 }
 
 Object *environment_get(const Environment *environment, const Token *name) {
         Node *node = search(environment->root, name->lexeme);
-        if (node == NULL) {
-                interpret_error(name, "Undefined variable '%s'.", name->lexeme);
+        if (node != NULL) {
+                return node->value;
         }
-        return node->value;
+        if (environment->enclosing != NULL) {
+                return environment_get(environment->enclosing, name);
+        }
+        interpret_error(name, "Undefined variable '%s'.", name->lexeme);
 }
 
 void environment_define(Environment *environment, const char *name, Object *value) {
@@ -108,8 +113,13 @@ void environment_define(Environment *environment, const char *name, Object *valu
 
 void environment_assign(Environment *environment, const Token *name, Object *value) {
         Node *node = search(environment->root, name->lexeme);
-        if (node == NULL) {
-                interpret_error(name, "Undefined variable '%s'.", name->lexeme);
+        if (node != NULL) {
+                node->value = value;
+                return;
         }
-        node->value = value;
+        if (environment->enclosing != NULL) {
+                environment_assign(environment->enclosing, name, value);
+                return;
+        }
+        interpret_error(name, "Undefined variable '%s'.", name->lexeme);
 }

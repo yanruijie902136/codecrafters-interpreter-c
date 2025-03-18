@@ -6,7 +6,7 @@
 
 typedef struct Environment Environment;
 
-Environment *environment_construct(void);
+Environment *environment_construct(Environment *enclosing);
 Object *environment_get(const Environment *environment, const Token *name);
 void environment_define(Environment *environment, const char *name, Object *value);
 void environment_assign(Environment *environment, const Token *name, Object *value);
