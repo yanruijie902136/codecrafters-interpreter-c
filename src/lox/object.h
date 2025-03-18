@@ -12,6 +12,7 @@ Object *string_object_construct(char *string);
 const char *object_to_string(const Object *object);
 
 bool object_is_truthy(const Object *object);
+bool object_equals(const Object *object, const Object *other);
 
 bool object_is_number(const Object *object);
 double object_as_number(const Object *object);

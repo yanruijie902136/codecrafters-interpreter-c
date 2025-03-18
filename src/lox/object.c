@@ -99,6 +99,23 @@ bool object_is_truthy(const Object *object) {
         }
 }
 
+bool object_equals(const Object *object, const Object *other) {
+        if (object->type != other->type) {
+                return false;
+        }
+
+        switch (object->type) {
+        case OBJECT_BOOLEAN:
+                return object->data.boolean == other->data.boolean;
+        case OBJECT_NIL:
+                return true;
+        case OBJECT_NUMBER:
+                return object->data.number == other->data.number;
+        case OBJECT_STRING:
+                return strcmp(object->data.string, other->data.string) == 0;
+        }
+}
+
 bool object_is_number(const Object *object) {
         return object->type == OBJECT_NUMBER;
 }

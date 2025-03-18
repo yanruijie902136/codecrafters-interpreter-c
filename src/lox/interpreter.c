@@ -34,6 +34,10 @@ static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
         Object *left = evaluate_expr(binary_expr->left);
         Object *right = evaluate_expr(binary_expr->right);
         switch (binary_expr->operator->type) {
+        case TOKEN_BANG_EQUAL:
+                return boolean_object_construct(!object_equals(left, right));
+        case TOKEN_EQUAL_EQUAL:
+                return boolean_object_construct(object_equals(left, right));
         case TOKEN_GREATER:
                 return boolean_object_construct(object_as_number(left) > object_as_number(right));
         case TOKEN_GREATER_EQUAL:
