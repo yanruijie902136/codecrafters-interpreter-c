@@ -57,6 +57,8 @@ static Expr *factor(void);
 static Expr *unary(void);
 static Expr *primary(void);
 
+static Stmt *declaration(void);
+static Stmt *var_declaration(void);
 static Stmt *statement(void);
 static Stmt *print_statement(void);
 static Stmt *expression_statement(void);
@@ -124,6 +126,10 @@ static Expr *primary(void) {
                 return (Expr *)literal_expr_construct(previous()->literal);
         }
 
+        if (match(TOKEN_IDENTIFIER)) {
+                return (Expr *)variable_expr_construct(previous());
+        }
+
         if (match(TOKEN_LEFT_PAREN)) {
                 Expr *expr = expression();
                 if (!match(TOKEN_RIGHT_PAREN)) {
@@ -133,6 +139,31 @@ static Expr *primary(void) {
         }
 
         parse_error(peek(), "Expect expression.");
+}
+
+static Stmt *declaration(void) {
+        if (match(TOKEN_VAR)) {
+                return var_declaration();
+        }
+        return statement();
+}
+
+static Stmt *var_declaration(void) {
+        if (!match(TOKEN_IDENTIFIER)) {
+                parse_error(peek(), "Expect variable name.");
+        }
+        Token *name = previous();
+
+        Expr *initializer = NULL;
+        if (match(TOKEN_EQUAL)) {
+                initializer = expression();
+        }
+
+        if (!match(TOKEN_SEMICOLON)) {
+                parse_error(peek(), "Expect ';' after variable declaration.");
+        }
+
+        return (Stmt *)var_stmt_construct(name, initializer);
 }
 
 static Stmt *statement(void) {
@@ -167,7 +198,7 @@ Vector *parse_stmts(const Vector *tokens) {
         init(tokens);
         Vector *statements = vector_construct();
         while (!is_at_end()) {
-                vector_push_back(statements, statement());
+                vector_push_back(statements, declaration());
         }
         return statements;
 }

@@ -31,3 +31,10 @@ UnaryExpr *unary_expr_construct(Token *operator, Expr *right) {
         unary_expr->right = right;
         return unary_expr;
 }
+
+VariableExpr *variable_expr_construct(Token *name) {
+        VariableExpr *variable_expr = xmalloc(sizeof(VariableExpr));
+        variable_expr->base.type = EXPR_VARIABLE;
+        variable_expr->name = name;
+        return variable_expr;
+}

@@ -1,14 +1,24 @@
 #include "lox/interpreter.h"
+#include "lox/environment.h"
 #include "lox/errors.h"
 #include "lox/expr.h"
 #include "lox/object.h"
 #include "lox/stmt.h"
 #include "util/xmalloc.h"
 
+#include <err.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+static struct {
+        Environment *environment;
+} interpreter;
+
+static void init(void) {
+        interpreter.environment = environment_construct();
+}
 
 static const char *stringify(const Object *object) {
         static char str[256];
@@ -87,6 +97,8 @@ static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
         case TOKEN_STAR:
                 check_number_operands(operator, left, right);
                 return number_object_construct(object_as_number(left) * object_as_number(right));
+        default:
+                errx(EXIT_FAILURE, "unexpected operator");
         }
 }
 
@@ -107,7 +119,13 @@ static Object *evaluate_unary_expr(const UnaryExpr *unary_expr) {
         case TOKEN_MINUS:
                 check_number_operand(operator, right);
                 return number_object_construct(-object_as_number(right));
+        default:
+                errx(EXIT_FAILURE, "unexpected operator");
         }
+}
+
+static Object *evaluate_variable_expr(const VariableExpr *variable_expr) {
+        return environment_get(interpreter.environment, variable_expr->name);
 }
 
 static Object *evaluate_expr(const Expr *expr) {
@@ -120,6 +138,8 @@ static Object *evaluate_expr(const Expr *expr) {
                 return evaluate_literal_expr((const LiteralExpr *)expr);
         case EXPR_UNARY:
                 return evaluate_unary_expr((const UnaryExpr *)expr);
+        case EXPR_VARIABLE:
+                return evaluate_variable_expr((const VariableExpr *)expr);
         }
 }
 
@@ -133,6 +153,11 @@ static void execute_print_stmt(const PrintStmt *print_stmt) {
         printf("%s\n", stringify(evaluate_expr(print_stmt->expression)));
 }
 
+static void execute_var_stmt(const VarStmt *var_stmt) {
+        Object *value = var_stmt->initializer == NULL ? nil_object_construct() : evaluate_expr(var_stmt->initializer);
+        environment_define(interpreter.environment, var_stmt->name->lexeme, value);
+}
+
 static void execute_stmt(const Stmt *stmt) {
         switch (stmt->type) {
         case STMT_EXPRESSION:
@@ -141,14 +166,19 @@ static void execute_stmt(const Stmt *stmt) {
         case STMT_PRINT:
                 execute_print_stmt((const PrintStmt *)stmt);
                 break;
+        case STMT_VAR:
+                execute_var_stmt((const VarStmt *)stmt);
+                break;
         }
 }
 
 void interpret_expr(const Expr *expr) {
+        init();
         printf("%s\n", stringify(evaluate_expr(expr)));
 }
 
 void interpret_stmts(const Vector *statements) {
+        init();
         size_t num_statements = vector_size(statements);
         for (size_t i = 0; i < num_statements; i++) {
                 execute_stmt(vector_at(statements, i));

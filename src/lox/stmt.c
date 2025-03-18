@@ -15,3 +15,11 @@ PrintStmt *print_stmt_construct(Expr *expression) {
         print_stmt->expression = expression;
         return print_stmt;
 }
+
+VarStmt *var_stmt_construct(Token *name, Expr *initializer) {
+        VarStmt *var_stmt = xmalloc(sizeof(VarStmt));
+        var_stmt->base.type = STMT_VAR;
+        var_stmt->name = name;
+        var_stmt->initializer = initializer;
+        return var_stmt;
+}

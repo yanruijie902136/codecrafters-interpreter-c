@@ -9,6 +9,7 @@ typedef enum {
         EXPR_GROUPING,
         EXPR_LITERAL,
         EXPR_UNARY,
+        EXPR_VARIABLE,
 } ExprType;
 
 typedef struct {
@@ -45,5 +46,12 @@ typedef struct {
 } UnaryExpr;
 
 UnaryExpr *unary_expr_construct(Token *operator, Expr *right);
+
+typedef struct {
+        Expr base;
+        Token *name;
+} VariableExpr;
+
+VariableExpr *variable_expr_construct(Token *name);
 
 #endif
