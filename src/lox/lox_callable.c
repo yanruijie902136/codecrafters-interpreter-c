@@ -15,10 +15,11 @@ LoxClock *lox_clock_construct(void) {
         return lox_clock;
 }
 
-LoxFunction *lox_function_construct(const FunctionStmt *declaration) {
+LoxFunction *lox_function_construct(const FunctionStmt *declaration, Environment *closure) {
         LoxFunction *lox_function = xmalloc(sizeof(LoxFunction));
         lox_function->base.type = LOX_CALLABLE_FUNCTION;
         lox_function->declaration = declaration;
+        lox_function->closure = closure;
         return lox_function;
 }
 
@@ -43,7 +44,7 @@ size_t lox_callable_arity(const LoxCallable *callable) {
 }
 
 static Object *lox_function_call(LoxFunction *lox_function, Vector *arguments) {
-        Environment *environment = environment_construct(get_globals());
+        Environment *environment = environment_construct(lox_function->closure);
 
         size_t num_params = vector_size(lox_function->declaration->params);
         for (size_t i = 0; i < num_params; i++) {

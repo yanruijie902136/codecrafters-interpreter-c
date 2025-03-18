@@ -216,7 +216,7 @@ static Object *execute_expression_stmt(const ExpressionStmt *expression_stmt) {
 }
 
 static Object *execute_function_stmt(const FunctionStmt *function_stmt) {
-        LoxFunction *function = lox_function_construct(function_stmt);
+        LoxFunction *function = lox_function_construct(function_stmt, interpreter.environment);
         Object *object = lox_callable_object_construct((LoxCallable *)function);
         environment_define(interpreter.environment, function_stmt->name->lexeme, object);
         return NULL;
