@@ -1,4 +1,5 @@
 #include "lox/interpreter.h"
+#include "lox/errors.h"
 #include "lox/expr.h"
 #include "lox/object.h"
 #include "util/xmalloc.h"
@@ -30,27 +31,18 @@ static char *concat(const char *s1, const char *s2) {
         return res;
 }
 
-static void error(const Token *token, const char *format, ...) {
-        va_list ap;
-        va_start(ap, format);
-        vfprintf(stderr, format, ap);
-        va_end(ap);
-        fprintf(stderr, "\n[line %zu]\n", token->line);
-        exit(70);
-}
-
 static void check_number_operand(const Token *operator, const Object *operand) {
         if (object_is_number(operand)) {
                 return;
         }
-        error(operator, "Operand must be a number.");
+        interpret_error(operator, "Operand must be a number.");
 }
 
 static void check_number_operands(const Token *operator, const Object *left, const Object *right) {
         if (object_is_number(left) && object_is_number(right)) {
                 return;
         }
-        error(operator, "Operands must be numbers.");
+        interpret_error(operator, "Operands must be numbers.");
 }
 
 static Object *evaluate_expr(const Expr *expr);
@@ -86,7 +78,7 @@ static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
                 } else if (object_is_number(left) && object_is_number(right)) {
                         return number_object_construct(object_as_number(left) + object_as_number(right));
                 } else {
-                        error(operator, "Operands must be two numbers or two strings.");
+                        interpret_error(operator, "Operands must be two numbers or two strings.");
                 }
         case TOKEN_SLASH:
                 check_number_operands(operator, left, right);

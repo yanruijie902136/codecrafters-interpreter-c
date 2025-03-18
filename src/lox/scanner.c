@@ -1,4 +1,5 @@
 #include "lox/scanner.h"
+#include "lox/errors.h"
 #include "lox/token.h"
 #include "util/vector.h"
 #include "util/xmalloc.h"
@@ -64,16 +65,6 @@ static void add_token(TokenType type) {
         add_token_complete(type, get_lexeme(), NULL);
 }
 
-static void error(const char *format, ...) {
-        fprintf(stderr, "[line %zu] Error: ", scanner.line);
-        va_list ap;
-        va_start(ap, format);
-        vfprintf(stderr, format, ap);
-        va_end(ap);
-        fprintf(stderr, "\n");
-        scanner.has_error = true;
-}
-
 static void comment(void) {
         while (!is_at_end() && peek() != '\n') {
                 advance();
@@ -88,7 +79,8 @@ static void string(void) {
         }
 
         if (is_at_end()) {
-                error("Unterminated string.");
+                scan_error(scanner.line, "Unterminated string.");
+                scanner.has_error = true;
                 return;
         }
         advance();
@@ -229,7 +221,8 @@ static void scan_token(void) {
                 } else if (is_alpha_numeric(c)) {
                         identifier();
                 } else {
-                        error("Unexpected character: %c", c);
+                        scan_error(scanner.line, "Unexpected character: %c", c);
+                        scanner.has_error = true;
                 }
         }
 }
