@@ -1,6 +1,7 @@
 #include "lox/interpreter.h"
 #include "lox/expr.h"
 #include "lox/object.h"
+#include "util/xmalloc.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -20,6 +21,13 @@ static const char *stringify(const Object *object) {
         return str;
 }
 
+static char *concat(const char *s1, const char *s2) {
+        size_t size = strlen(s1) + strlen(s2) + 1;
+        char *res = xmalloc(size);
+        snprintf(res, size, "%s%s", s1, s2);
+        return res;
+}
+
 static Object *evaluate_expr(const Expr *expr);
 
 static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
@@ -29,6 +37,10 @@ static Object *evaluate_binary_expr(const BinaryExpr *binary_expr) {
         case TOKEN_MINUS:
                 return number_object_construct(object_as_number(left) - object_as_number(right));
         case TOKEN_PLUS:
+                if (object_is_string(left) && object_is_string(right)) {
+                        char *s = concat(object_as_string(left), object_as_string(right));
+                        return string_object_construct(s);
+                }
                 return number_object_construct(object_as_number(left) + object_as_number(right));
         case TOKEN_SLASH:
                 return number_object_construct(object_as_number(left) / object_as_number(right));

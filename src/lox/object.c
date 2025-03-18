@@ -107,3 +107,13 @@ double object_as_number(const Object *object) {
         assert(object_is_number(object));
         return object->data.number;
 }
+
+
+bool object_is_string(const Object *object) {
+        return object->type == OBJECT_STRING;
+}
+
+const char *object_as_string(const Object *object) {
+        assert(object_is_string(object));
+        return object->data.string;
+}

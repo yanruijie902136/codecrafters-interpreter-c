@@ -16,4 +16,7 @@ bool object_is_truthy(const Object *object);
 bool object_is_number(const Object *object);
 double object_as_number(const Object *object);
 
+bool object_is_string(const Object *object);
+const char *object_as_string(const Object *object);
+
 #endif
