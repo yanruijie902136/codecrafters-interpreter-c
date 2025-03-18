@@ -250,7 +250,7 @@ static FunctionStmt *function(const char *kind) {
                                 parse_error(peek(), "Expect parameter name.");
                         }
                         vector_push_back(params, previous());
-                } while (TOKEN_COMMA);
+                } while (match(TOKEN_COMMA));
         }
         if (!match(TOKEN_RIGHT_PAREN)) {
                 parse_error(peek(), "Expect ')' after parameters.");
