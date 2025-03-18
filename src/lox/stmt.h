@@ -2,11 +2,13 @@
 #define CODECRAFTERS_INTERPRETER_LOX_STMT_H
 
 #include "lox/expr.h"
+#include "lox/token.h"
 #include "util/vector.h"
 
 typedef enum {
         STMT_BLOCK,
         STMT_EXPRESSION,
+        STMT_FUNCTION,
         STMT_IF,
         STMT_PRINT,
         STMT_VAR,
@@ -30,6 +32,15 @@ typedef struct {
 } ExpressionStmt;
 
 ExpressionStmt *expression_stmt_construct(Expr *expression);
+
+typedef struct {
+        Stmt base;
+        Token *name;
+        Vector *params;
+        Vector *body;
+} FunctionStmt;
+
+FunctionStmt *function_stmt_construct(Token *name, Vector *params, Vector *body);
 
 typedef struct {
         Stmt base;

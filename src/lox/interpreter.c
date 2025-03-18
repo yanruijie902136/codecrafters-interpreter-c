@@ -134,7 +134,7 @@ static Object *evaluate_call_expr(const CallExpr *call_expr) {
                 parse_error(call_expr->paren, "Expected %zu arguments but got %zu.", arity, num_arguments);
         }
 
-        return lox_callable_call(function);
+        return lox_callable_call(function, arguments);
 }
 
 static Object *evaluate_grouping_expr(const GroupingExpr *grouping_expr) {
@@ -206,24 +206,18 @@ static Object *evaluate_expr(const Expr *expr) {
 
 static void execute_stmt(const Stmt *stmt);
 
-static void execute_block(Vector *statements, Environment *environment) {
-        Environment *previous = interpreter.environment;
-        interpreter.environment = environment;
-
-        size_t num_statements = vector_size(statements);
-        for (size_t i = 0; i < num_statements; i++) {
-                execute_stmt(vector_at(statements, i));
-        }
-
-        interpreter.environment = previous;
-}
-
 static void execute_block_stmt(const BlockStmt *block_stmt) {
         execute_block(block_stmt->statements, environment_construct(interpreter.environment));
 }
 
 static void execute_expression_stmt(const ExpressionStmt *expression_stmt) {
         evaluate_expr(expression_stmt->expression);
+}
+
+static void execute_function_stmt(const FunctionStmt *function_stmt) {
+        LoxFunction *function = lox_function_construct(function_stmt);
+        Object *object = lox_callable_object_construct((LoxCallable *)function);
+        environment_define(interpreter.environment, function_stmt->name->lexeme, object);
 }
 
 static void execute_if_stmt(const IfStmt *if_stmt) {
@@ -257,6 +251,9 @@ static void execute_stmt(const Stmt *stmt) {
         case STMT_EXPRESSION:
                 execute_expression_stmt((const ExpressionStmt *)stmt);
                 break;
+        case STMT_FUNCTION:
+                execute_function_stmt((const FunctionStmt *)stmt);
+                break;
         case STMT_IF:
                 execute_if_stmt((const IfStmt *)stmt);
                 break;
@@ -283,4 +280,20 @@ void interpret_stmts(const Vector *statements) {
         for (size_t i = 0; i < num_statements; i++) {
                 execute_stmt(vector_at(statements, i));
         }
+}
+
+Environment *get_globals(void) {
+        return interpreter.globals;
+}
+
+void execute_block(Vector *statements, Environment *environment) {
+        Environment *previous = interpreter.environment;
+        interpreter.environment = environment;
+
+        size_t num_statements = vector_size(statements);
+        for (size_t i = 0; i < num_statements; i++) {
+                execute_stmt(vector_at(statements, i));
+        }
+
+        interpreter.environment = previous;
 }

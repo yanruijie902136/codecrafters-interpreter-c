@@ -16,6 +16,15 @@ ExpressionStmt *expression_stmt_construct(Expr *expression) {
         return expression_stmt;
 }
 
+FunctionStmt *function_stmt_construct(Token *name, Vector *params, Vector *body) {
+        FunctionStmt *function_stmt = xmalloc(sizeof(FunctionStmt));
+        function_stmt->base.type = STMT_FUNCTION;
+        function_stmt->name = name;
+        function_stmt->params = params;
+        function_stmt->body = body;
+        return function_stmt;
+}
+
 IfStmt *if_stmt_construct(Expr *condition, Stmt *then_branch, Stmt *else_branch) {
         IfStmt *if_stmt = xmalloc(sizeof(IfStmt));
         if_stmt->base.type = STMT_IF;

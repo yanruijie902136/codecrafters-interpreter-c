@@ -1,10 +1,13 @@
 #ifndef CODECRAFTERS_INTERPRETER_LOX_INTERPRETER_H
 #define CODECRAFTERS_INTERPRETER_LOX_INTERPRETER_H
 
+#include "lox/environment.h"
 #include "lox/expr.h"
 #include "util/vector.h"
 
 void interpret_expr(const Expr *expr);
 void interpret_stmts(const Vector *statements);
+Environment *get_globals(void);
+void execute_block(Vector *statements, Environment *environment);
 
 #endif

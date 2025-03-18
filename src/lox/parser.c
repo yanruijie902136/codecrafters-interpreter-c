@@ -63,6 +63,7 @@ static Expr *finish_call(Expr *callee);
 static Expr *primary(void);
 
 static Stmt *declaration(void);
+static FunctionStmt *function(const char *kind);
 static Stmt *var_declaration(void);
 static Stmt *statement(void);
 static Stmt *for_statement(void);
@@ -221,10 +222,45 @@ static Expr *primary(void) {
 }
 
 static Stmt *declaration(void) {
+        if (match(TOKEN_FUN)) {
+                return (Stmt *)function("function");
+        }
         if (match(TOKEN_VAR)) {
                 return var_declaration();
         }
         return statement();
+}
+
+static FunctionStmt *function(const char *kind) {
+        if (!match(TOKEN_IDENTIFIER)) {
+                parse_error(peek(), "Expect %s name.", kind);
+        }
+        Token *name = previous();
+        if (!match(TOKEN_LEFT_PAREN)) {
+                parse_error(peek(), "Expect '(' after %s name.", kind);
+        }
+
+        Vector *params = vector_construct();
+        if (!check(TOKEN_RIGHT_PAREN)) {
+                do {
+                        if (vector_size(params) >= 255) {
+                                parse_error(peek(), "Can't have more than 255 parameters.");
+                        }
+                        if (!match(TOKEN_IDENTIFIER)) {
+                                parse_error(peek(), "Expect parameter name.");
+                        }
+                        vector_push_back(params, previous());
+                } while (TOKEN_COMMA);
+        }
+        if (!match(TOKEN_RIGHT_PAREN)) {
+                parse_error(peek(), "Expect ')' after parameters.");
+        }
+
+        if (!match(TOKEN_LEFT_BRACE)) {
+                parse_error(peek(), "Expect '{' before %s body.", kind);
+        }
+        Vector *body = block();
+        return function_stmt_construct(name, params, body);
 }
 
 static Stmt *var_declaration(void) {
