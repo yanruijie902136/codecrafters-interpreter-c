@@ -7,6 +7,7 @@
 
 typedef enum {
         STMT_BLOCK,
+        STMT_CLASS,
         STMT_EXPRESSION,
         STMT_FUNCTION,
         STMT_IF,
@@ -26,6 +27,14 @@ typedef struct {
 } BlockStmt;
 
 BlockStmt *block_stmt_construct(Vector *statements);
+
+typedef struct {
+        Stmt base;
+        Token *name;
+        Vector *methods;
+} ClassStmt;
+
+ClassStmt *class_stmt_construct(Token *name, Vector *methods);
 
 typedef struct {
         Stmt base;

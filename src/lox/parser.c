@@ -63,6 +63,7 @@ static Expr *finish_call(Expr *callee);
 static Expr *primary(void);
 
 static Stmt *declaration(void);
+static Stmt *class_declaration(void);
 static FunctionStmt *function(const char *kind);
 static Stmt *var_declaration(void);
 static Stmt *statement(void);
@@ -223,6 +224,9 @@ static Expr *primary(void) {
 }
 
 static Stmt *declaration(void) {
+        if (match(TOKEN_CLASS)) {
+                return class_declaration();
+        }
         if (match(TOKEN_FUN)) {
                 return (Stmt *)function("function");
         }
@@ -230,6 +234,28 @@ static Stmt *declaration(void) {
                 return var_declaration();
         }
         return statement();
+}
+
+static Stmt *class_declaration(void) {
+        if (!match(TOKEN_IDENTIFIER)) {
+                parse_error(peek(), "Expect class name.");
+        }
+        Token *name = previous();
+
+        if (!match(TOKEN_LEFT_BRACE)) {
+                parse_error(peek(), "Expect '{' before class body.");
+        }
+
+        Vector *methods = vector_construct();
+        while (!check(TOKEN_RIGHT_BRACE) && !is_at_end()) {
+                vector_push_back(methods, function("method"));
+        }
+
+        if (!match(TOKEN_RIGHT_BRACE)) {
+                parse_error(peek(), "Expect '}' after class body.");
+        }
+
+        return (Stmt *)class_stmt_construct(name, methods);
 }
 
 static FunctionStmt *function(const char *kind) {

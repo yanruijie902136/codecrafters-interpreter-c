@@ -3,6 +3,7 @@
 #include "lox/errors.h"
 #include "lox/expr.h"
 #include "lox/lox_callable.h"
+#include "lox/lox_class.h"
 #include "lox/object.h"
 #include "lox/stmt.h"
 #include "lox/token.h"
@@ -259,6 +260,13 @@ static Object *execute_block_stmt(const BlockStmt *block_stmt) {
         return execute_block(block_stmt->statements, environment_construct(interpreter.environment));
 }
 
+static Object *execute_class_stmt(const ClassStmt *class_stmt) {
+        environment_define(interpreter.environment, class_stmt->name->lexeme, NULL);
+        LoxClass *class = lox_class_construct(class_stmt->name->lexeme);
+        environment_assign(interpreter.environment, class_stmt->name, lox_callable_object_construct((LoxCallable *)class));
+        return NULL;
+}
+
 static Object *execute_expression_stmt(const ExpressionStmt *expression_stmt) {
         evaluate_expr(expression_stmt->expression);
         return NULL;
@@ -312,6 +320,8 @@ static Object *execute_stmt(const Stmt *stmt) {
         switch (stmt->type) {
         case STMT_BLOCK:
                 return execute_block_stmt((const BlockStmt *)stmt);
+        case STMT_CLASS:
+                return execute_class_stmt((const ClassStmt *)stmt);
         case STMT_EXPRESSION:
                 return execute_expression_stmt((const ExpressionStmt *)stmt);
         case STMT_FUNCTION:

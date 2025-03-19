@@ -9,6 +9,14 @@ BlockStmt *block_stmt_construct(Vector *statements) {
         return block_stmt;
 }
 
+ClassStmt *class_stmt_construct(Token *name, Vector *methods) {
+        ClassStmt *class_stmt = xmalloc(sizeof(ClassStmt));
+        class_stmt->base.type = STMT_CLASS;
+        class_stmt->name = name;
+        class_stmt->methods = methods;
+        return class_stmt;
+}
+
 ExpressionStmt *expression_stmt_construct(Expr *expression) {
         ExpressionStmt *expression_stmt = xmalloc(sizeof(ExpressionStmt));
         expression_stmt->base.type = STMT_EXPRESSION;

@@ -9,6 +9,7 @@
 #include "util/vector.h"
 
 typedef enum {
+        LOX_CALLABLE_CLASS,
         LOX_CALLABLE_CLOCK,
         LOX_CALLABLE_FUNCTION,
 } LoxCallableType;

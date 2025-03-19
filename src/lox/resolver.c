@@ -201,6 +201,11 @@ static void resolve_block_stmt(const BlockStmt *block_stmt) {
         end_scope();
 }
 
+static void resolve_class_stmt(const ClassStmt *class_stmt) {
+        declare(class_stmt->name);
+        define(class_stmt->name);
+}
+
 static void resolve_expression_stmt(const ExpressionStmt *expression_stmt) {
         resolve_expr(expression_stmt->expression);
 }
@@ -250,6 +255,9 @@ static void resolve_stmt(const Stmt *stmt) {
         switch (stmt->type) {
         case STMT_BLOCK:
                 resolve_block_stmt((const BlockStmt *)stmt);
+                break;
+        case STMT_CLASS:
+                resolve_class_stmt((const ClassStmt *)stmt);
                 break;
         case STMT_EXPRESSION:
                 resolve_expression_stmt((const ExpressionStmt *)stmt);

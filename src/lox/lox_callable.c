@@ -1,6 +1,7 @@
 #include "lox/lox_callable.h"
 #include "lox/environment.h"
 #include "lox/interpreter.h"
+#include "lox/lox_class.h"
 #include "lox/object.h"
 #include "lox/token.h"
 #include "util/vector.h"
@@ -8,6 +9,13 @@
 
 #include <stdio.h>
 #include <time.h>
+
+LoxClass *lox_class_construct(const char *name) {
+        LoxClass *lox_class = xmalloc(sizeof(LoxClass));
+        lox_class->base.type = LOX_CALLABLE_CLASS;
+        lox_class->name = name;
+        return lox_class;
+}
 
 LoxClock *lox_clock_construct(void) {
         LoxClock *lox_clock = xmalloc(sizeof(LoxClock));
@@ -26,10 +34,12 @@ LoxFunction *lox_function_construct(const FunctionStmt *declaration, Environment
 const char *lox_callable_to_string(const LoxCallable *callable) {
         static char str[256];
         switch (callable->type) {
+        case LOX_CALLABLE_CLASS:
+                return ((const LoxClass *)callable)->name;
         case LOX_CALLABLE_CLOCK:
                 return "<native fn>";
         case LOX_CALLABLE_FUNCTION:
-                snprintf(str, sizeof(str), "<fn %s>", ((LoxFunction *)callable)->declaration->name->lexeme);
+                snprintf(str, sizeof(str), "<fn %s>", ((const LoxFunction *)callable)->declaration->name->lexeme);
                 return str;
         }
 }
