@@ -55,6 +55,14 @@ static void declare(const Token *name) {
                 return;
         }
         Set *scope = vector_at_back(resolver.scopes);
+
+        Element element = {
+                .name = name->lexeme,
+        };
+        if (set_search(scope, &element) != NULL) {
+                resolve_error(name, "Already a variable with this name in this scope.");
+        }
+
         set_insert(scope, element_construct(name->lexeme, false));
 }
 
