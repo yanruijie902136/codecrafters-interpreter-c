@@ -237,6 +237,10 @@ static Object *evaluate_set_expr(const SetExpr *set_expr) {
         return value;
 }
 
+static Object *evaluate_this_expr(const ThisExpr *this_expr) {
+        return lookup_variable(this_expr->keyword, (const Expr *)this_expr);
+}
+
 static Object *evaluate_unary_expr(const UnaryExpr *unary_expr) {
         Object *right = evaluate_expr(unary_expr->right);
         Token *operator = unary_expr->operator;
@@ -273,6 +277,8 @@ static Object *evaluate_expr(const Expr *expr) {
                 return evaluate_logical_expr((const LogicalExpr *)expr);
         case EXPR_SET:
                 return evaluate_set_expr((const SetExpr *)expr);
+        case EXPR_THIS:
+                return evaluate_this_expr((const ThisExpr *)expr);
         case EXPR_UNARY:
                 return evaluate_unary_expr((const UnaryExpr *)expr);
         case EXPR_VARIABLE:

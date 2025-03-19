@@ -67,6 +67,13 @@ SetExpr *set_expr_construct(Expr *object, Token *name, Expr *value) {
         return set_expr;
 }
 
+ThisExpr *this_expr_construct(Token *keyword) {
+        ThisExpr *this_expr = xmalloc(sizeof(ThisExpr));
+        this_expr->base.type = EXPR_THIS;
+        this_expr->keyword = keyword;
+        return this_expr;
+}
+
 UnaryExpr *unary_expr_construct(Token *operator, Expr *right) {
         UnaryExpr *unary_expr = xmalloc(sizeof(UnaryExpr));
         unary_expr->base.type = EXPR_UNARY;

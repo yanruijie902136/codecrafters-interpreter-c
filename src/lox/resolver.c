@@ -156,6 +156,10 @@ static void resolve_set_expr(const SetExpr *set_expr) {
         resolve_expr(set_expr->object);
 }
 
+static void resolve_this_expr(const ThisExpr *this_expr) {
+        resolve_local((const Expr *)this_expr, this_expr->keyword);
+}
+
 static void resolve_unary_expr(const UnaryExpr *unary_expr) {
         resolve_expr(unary_expr->right);
 }
@@ -200,6 +204,9 @@ static void resolve_expr(const Expr *expr) {
         case EXPR_SET:
                 resolve_set_expr((const SetExpr *)expr);
                 break;
+        case EXPR_THIS:
+                resolve_this_expr((const ThisExpr *)expr);
+                break;
         case EXPR_UNARY:
                 resolve_unary_expr((const UnaryExpr *)expr);
                 break;
@@ -221,11 +228,17 @@ static void resolve_class_stmt(const ClassStmt *class_stmt) {
         declare(class_stmt->name);
         define(class_stmt->name);
 
+        begin_scope();
+        Set *scope = vector_at_back(resolver.scopes);
+        set_insert(scope, element_construct("this", true));
+
         size_t num_methods = vector_size(class_stmt->methods);
         for (size_t i = 0; i < num_methods; i++) {
                 FunctionStmt *method = vector_at(class_stmt->methods, i);
                 resolve_function(method, FUNCTION_METHOD);
         }
+
+        end_scope();
 }
 
 static void resolve_expression_stmt(const ExpressionStmt *expression_stmt) {

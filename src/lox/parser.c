@@ -218,6 +218,10 @@ static Expr *primary(void) {
                 return (Expr *)literal_expr_construct(previous()->literal);
         }
 
+        if (match(TOKEN_THIS)) {
+                return (Expr *)this_expr_construct(previous());
+        }
+
         if (match(TOKEN_IDENTIFIER)) {
                 return (Expr *)variable_expr_construct(previous());
         }

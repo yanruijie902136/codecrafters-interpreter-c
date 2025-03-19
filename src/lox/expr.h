@@ -14,6 +14,7 @@ typedef enum {
         EXPR_LITERAL,
         EXPR_LOGICAL,
         EXPR_SET,
+        EXPR_THIS,
         EXPR_UNARY,
         EXPR_VARIABLE,
 } ExprType;
@@ -87,6 +88,13 @@ typedef struct {
 } SetExpr;
 
 SetExpr *set_expr_construct(Expr *object, Token *name, Expr *value);
+
+typedef struct {
+        Expr base;
+        Token *keyword;
+} ThisExpr;
+
+ThisExpr *this_expr_construct(Token *keyword);
 
 typedef struct {
         Expr base;

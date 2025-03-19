@@ -1,4 +1,5 @@
 #include "lox/lox_instance.h"
+#include "lox/environment.h"
 #include "lox/errors.h"
 #include "lox/lox_callable.h"
 #include "lox/lox_class.h"
@@ -47,7 +48,13 @@ const char *lox_instance_to_string(const LoxInstance *instance) {
         return str;
 }
 
-Object *lox_instance_get(const LoxInstance *instance, const Token *name) {
+static LoxFunction *bind(LoxFunction *function, LoxInstance *instance) {
+        Environment *environment = environment_construct(function->closure);
+        environment_define(environment, "this", lox_instance_object_construct(instance));
+        return lox_function_construct(function->declaration, environment);
+}
+
+Object *lox_instance_get(LoxInstance *instance, const Token *name) {
         Element element = {
                 .name = name->lexeme,
         };
@@ -58,7 +65,7 @@ Object *lox_instance_get(const LoxInstance *instance, const Token *name) {
 
         LoxFunction *method = lox_class_find_method(instance->class, name->lexeme);
         if (method != NULL) {
-                return lox_callable_object_construct((LoxCallable *)method);
+                return lox_callable_object_construct((LoxCallable *)bind(method, instance));
         }
 
         interpret_error(name, "Undefined property '%s'.", name->lexeme);
