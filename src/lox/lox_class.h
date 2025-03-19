@@ -1,8 +1,6 @@
 #ifndef CODECRAFTERS_INTERPRETER_LOX_CLASS_H
 #define CODECRAFTERS_INTERPRETER_LOX_CLASS_H
 
-#include <string.h>
-
 #include "lox/lox_callable.h"
 #include "lox/lox_function.h"
 #include "lox/object.h"
@@ -25,12 +23,9 @@ typedef struct {
         LoxFunction *function;
 } Method;
 
-inline int method_compare(const void *m1, const void *m2) {
-        const char *name1 = ((const Method *)m1)->name;
-        const char *name2 = ((const Method *)m2)->name;
-        return strcmp(name1, name2);
-}
-
+int method_compare(const void *m1, const void *m2);
 Method *method_construct(const char *name, LoxFunction *function);
+
+LoxFunction *lox_class_find_method(const LoxClass *class, const char *name);
 
 #endif

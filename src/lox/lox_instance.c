@@ -47,14 +47,6 @@ const char *lox_instance_to_string(const LoxInstance *instance) {
         return str;
 }
 
-static LoxFunction *find_method(const LoxInstance *instance, const char *name) {
-        Method method = {
-                .name = name,
-        };
-        Method *p = set_search(instance->fields, &method);
-        return p == NULL ? NULL : p->function;
-}
-
 Object *lox_instance_get(const LoxInstance *instance, const Token *name) {
         Element element = {
                 .name = name->lexeme,
@@ -64,7 +56,7 @@ Object *lox_instance_get(const LoxInstance *instance, const Token *name) {
                 return p->value;
         }
 
-        LoxFunction *method = find_method(instance, name->lexeme);
+        LoxFunction *method = lox_class_find_method(instance->class, name->lexeme);
         if (method != NULL) {
                 return lox_callable_object_construct((LoxCallable *)method);
         }
