@@ -27,6 +27,14 @@ CallExpr *call_expr_construct(Expr *callee, Token *paren, Vector *arguments) {
         return call_expr;
 }
 
+GetExpr *get_expr_construct(Expr *object, Token *name) {
+        GetExpr *get_expr = xmalloc(sizeof(GetExpr));
+        get_expr->base.type = EXPR_GET;
+        get_expr->object = object;
+        get_expr->name = name;
+        return get_expr;
+}
+
 GroupingExpr *grouping_expr_construct(Expr *expression) {
         GroupingExpr *grouping_expr = xmalloc(sizeof(GroupingExpr));
         grouping_expr->base.type = EXPR_GROUPING;
@@ -48,6 +56,15 @@ LogicalExpr *logical_expr_construct(Expr *left, Token *operator, Expr *right) {
         logical_expr->operator = operator;
         logical_expr->right = right;
         return logical_expr;
+}
+
+SetExpr *set_expr_construct(Expr *object, Token *name, Expr *value) {
+        SetExpr *set_expr = xmalloc(sizeof(SetExpr));
+        set_expr->base.type = EXPR_SET;
+        set_expr->object = object;
+        set_expr->name = name;
+        set_expr->value = value;
+        return set_expr;
 }
 
 UnaryExpr *unary_expr_construct(Token *operator, Expr *right) {

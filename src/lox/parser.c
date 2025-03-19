@@ -84,10 +84,15 @@ static Expr *assignment(void) {
         if (match(TOKEN_EQUAL)) {
                 Token *equals = previous();
                 Expr *value = assignment();
+
                 if (expr->type == EXPR_VARIABLE) {
                         Token *name = ((VariableExpr *)expr)->name;
                         return (Expr *)assign_expr_construct(name, value);
+                } else if (expr->type == EXPR_GET) {
+                        GetExpr *get_expr = (GetExpr *)expr;
+                        return (Expr *)set_expr_construct(get_expr->object, get_expr->name, value);
                 }
+
                 parse_error(equals, "Invalid assignment target.");
         }
         return expr;
@@ -167,6 +172,11 @@ static Expr *call(void) {
         for ( ; ; ) {
                 if (match(TOKEN_LEFT_PAREN)) {
                         expr = finish_call(expr);
+                } else if (match(TOKEN_DOT)) {
+                        if (!match(TOKEN_IDENTIFIER)) {
+                                parse_error(peek(), "Expect property name after '.'.");
+                        }
+                        expr = (Expr *)get_expr_construct(expr, previous());
                 } else {
                         break;
                 }

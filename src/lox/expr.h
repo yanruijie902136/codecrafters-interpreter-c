@@ -9,9 +9,11 @@ typedef enum {
         EXPR_ASSIGN,
         EXPR_BINARY,
         EXPR_CALL,
+        EXPR_GET,
         EXPR_GROUPING,
         EXPR_LITERAL,
         EXPR_LOGICAL,
+        EXPR_SET,
         EXPR_UNARY,
         EXPR_VARIABLE,
 } ExprType;
@@ -48,6 +50,14 @@ CallExpr *call_expr_construct(Expr *callee, Token *paren, Vector *arguments);
 
 typedef struct {
         Expr base;
+        Expr *object;
+        Token *name;
+} GetExpr;
+
+GetExpr *get_expr_construct(Expr *object, Token *name);
+
+typedef struct {
+        Expr base;
         Expr *expression;
 } GroupingExpr;
 
@@ -68,6 +78,15 @@ typedef struct {
 } LogicalExpr;
 
 LogicalExpr *logical_expr_construct(Expr *left, Token *operator, Expr *right);
+
+typedef struct {
+        Expr base;
+        Expr *object;
+        Token *name;
+        Expr *value;
+} SetExpr;
+
+SetExpr *set_expr_construct(Expr *object, Token *name, Expr *value);
 
 typedef struct {
         Expr base;

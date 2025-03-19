@@ -168,3 +168,12 @@ LoxCallable *object_as_lox_callable(const Object *object) {
         assert(object_is_lox_callable(object));
         return object->data.callable;
 }
+
+bool object_is_lox_instance(const Object *object) {
+        return object->type == OBJECT_LOX_INSTANCE;
+}
+
+LoxInstance *object_as_lox_instance(const Object *object) {
+        assert(object_is_lox_instance(object));
+        return object->data.instance;
+}

@@ -5,6 +5,7 @@
 #include "lox/lox_callable.h"
 #include "lox/lox_class.h"
 #include "lox/lox_function.h"
+#include "lox/lox_instance.h"
 #include "lox/object.h"
 #include "lox/stmt.h"
 #include "lox/token.h"
@@ -188,6 +189,15 @@ static Object *evaluate_call_expr(const CallExpr *call_expr) {
         return lox_callable_call(function, arguments);
 }
 
+static Object *evaluate_get_expr(const GetExpr *get_expr) {
+        Object *object = evaluate_expr(get_expr->object);
+        if (!object_is_lox_instance(object)) {
+                interpret_error(get_expr->name, "Only instances have properties.");
+        }
+        LoxInstance *instance = object_as_lox_instance(object);
+        return lox_instance_get(instance, get_expr->name);
+}
+
 static Object *evaluate_grouping_expr(const GroupingExpr *grouping_expr) {
         return evaluate_expr(grouping_expr->expression);
 }
@@ -216,6 +226,17 @@ static Object *evaluate_logical_expr(const LogicalExpr *logical_expr) {
         return evaluate_expr(logical_expr->right);
 }
 
+static Object *evaluate_set_expr(const SetExpr *set_expr) {
+        Object *object = evaluate_expr(set_expr->object);
+        if (!object_is_lox_instance(object)) {
+                interpret_error(set_expr->name, "Only instances have fields.");
+        }
+        Object *value = evaluate_expr(set_expr->value);
+        LoxInstance *instance = object_as_lox_instance(object);
+        lox_instance_set(instance, set_expr->name, value);
+        return value;
+}
+
 static Object *evaluate_unary_expr(const UnaryExpr *unary_expr) {
         Object *right = evaluate_expr(unary_expr->right);
         Token *operator = unary_expr->operator;
@@ -242,12 +263,16 @@ static Object *evaluate_expr(const Expr *expr) {
                 return evaluate_binary_expr((const BinaryExpr *)expr);
         case EXPR_CALL:
                 return evaluate_call_expr((const CallExpr *)expr);
+        case EXPR_GET:
+                return evaluate_get_expr((const GetExpr *)expr);
         case EXPR_GROUPING:
                 return evaluate_grouping_expr((const GroupingExpr *)expr);
         case EXPR_LITERAL:
                 return evaluate_literal_expr((const LiteralExpr *)expr);
         case EXPR_LOGICAL:
                 return evaluate_logical_expr((const LogicalExpr *)expr);
+        case EXPR_SET:
+                return evaluate_set_expr((const SetExpr *)expr);
         case EXPR_UNARY:
                 return evaluate_unary_expr((const UnaryExpr *)expr);
         case EXPR_VARIABLE:

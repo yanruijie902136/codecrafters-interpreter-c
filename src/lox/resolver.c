@@ -133,6 +133,10 @@ static void resolve_call_expr(const CallExpr *call_expr) {
         }
 }
 
+static void resolve_get_expr(const GetExpr *get_expr) {
+        resolve_expr(get_expr->object);
+}
+
 static void resolve_grouping_expr(const GroupingExpr *grouping_expr) {
         resolve_expr(grouping_expr->expression);
 }
@@ -144,6 +148,11 @@ static void resolve_literal_expr(const LiteralExpr *literal_expr) {
 static void resolve_logical_expr(const LogicalExpr *logical_expr) {
         resolve_expr(logical_expr->left);
         resolve_expr(logical_expr->right);
+}
+
+static void resolve_set_expr(const SetExpr *set_expr) {
+        resolve_expr(set_expr->value);
+        resolve_expr(set_expr->object);
 }
 
 static void resolve_unary_expr(const UnaryExpr *unary_expr) {
@@ -175,6 +184,9 @@ static void resolve_expr(const Expr *expr) {
         case EXPR_CALL:
                 resolve_call_expr((const CallExpr *)expr);
                 break;
+        case EXPR_GET:
+                resolve_get_expr((const GetExpr *)expr);
+                break;
         case EXPR_GROUPING:
                 resolve_grouping_expr((const GroupingExpr *)expr);
                 break;
@@ -183,6 +195,9 @@ static void resolve_expr(const Expr *expr) {
                 break;
         case EXPR_LOGICAL:
                 resolve_logical_expr((const LogicalExpr *)expr);
+                break;
+        case EXPR_SET:
+                resolve_set_expr((const SetExpr *)expr);
                 break;
         case EXPR_UNARY:
                 resolve_unary_expr((const UnaryExpr *)expr);
