@@ -37,6 +37,7 @@ typedef enum {
 typedef enum {
         FUNCTION_NONE,
         FUNCTION_FUNCTION,
+        FUNCTION_INITIALIZER,
         FUNCTION_METHOD,
 } FunctionType;
 
@@ -248,7 +249,8 @@ static void resolve_class_stmt(const ClassStmt *class_stmt) {
         size_t num_methods = vector_size(class_stmt->methods);
         for (size_t i = 0; i < num_methods; i++) {
                 FunctionStmt *method = vector_at(class_stmt->methods, i);
-                resolve_function(method, FUNCTION_METHOD);
+                FunctionType type = strcmp(method->name->lexeme, "init") == 0 ? FUNCTION_INITIALIZER : FUNCTION_METHOD;
+                resolve_function(method, type);
         }
 
         end_scope();
@@ -284,6 +286,9 @@ static void resolve_return_stmt(const ReturnStmt *return_stmt) {
         }
 
         if (return_stmt->value != NULL) {
+                if (resolver.current_function == FUNCTION_INITIALIZER) {
+                        resolve_error(return_stmt->keyword, "Can't return a value from an initializer.");
+                }
                 resolve_expr(return_stmt->value);
         }
 }

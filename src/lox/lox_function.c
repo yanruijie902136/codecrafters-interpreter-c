@@ -2,6 +2,7 @@
 #include "lox/environment.h"
 #include "lox/interpreter.h"
 #include "lox/lox_callable.h"
+#include "lox/object.h"
 #include "util/vector.h"
 #include "util/xmalloc.h"
 
@@ -36,11 +37,8 @@ Object *lox_function_call(LoxFunction *lox_function, Vector *arguments) {
         }
 
         Object *result = execute_block(lox_function->declaration->body, environment);
-        if (result == NULL) {
-                if (lox_function->is_initializer) {
-                        return environment_get_at(lox_function->closure, "this", 0);
-                }
-                return nil_object_construct();
+        if (lox_function->is_initializer) {
+                return environment_get_at(lox_function->closure, "this", 0);
         }
-        return result;
+        return result == NULL ? nil_object_construct() : result;
 }
