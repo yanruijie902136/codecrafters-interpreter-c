@@ -10,6 +10,8 @@ void scan_error(size_t line, const char *format, ...);
 __attribute__((noreturn))
 void parse_error(const Token *token, const char *format, ...);
 
+#define resolve_error parse_error
+
 __attribute__((noreturn))
 void interpret_error(const Token *token, const char *format, ...);
 

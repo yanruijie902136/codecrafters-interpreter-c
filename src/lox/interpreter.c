@@ -5,6 +5,8 @@
 #include "lox/lox_callable.h"
 #include "lox/object.h"
 #include "lox/stmt.h"
+#include "lox/token.h"
+#include "util/set.h"
 #include "util/vector.h"
 #include "util/xmalloc.h"
 
@@ -13,17 +15,43 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct {
+        const Expr *expr;
+        size_t depth;
+} Element;
+
+static int element_compare(const void *element1, const void *element2) {
+        const Expr *expr1 = ((const Element *)element1)->expr;
+        const Expr *expr2 = ((const Element *)element2)->expr;
+        return expr1 == expr2 ? 0 : (expr1 < expr2 ? -1 : 1);
+}
+
+static Element *element_construct(const Expr *expr, size_t depth) {
+        Element *element = xmalloc(sizeof(Element));
+        element->expr = expr;
+        element->depth = depth;
+        return element;
+}
+
 static struct {
         Environment *globals;
         Environment *environment;
+        Set *locals;
 } interpreter;
 
 static void init(void) {
-        interpreter.globals = environment_construct(NULL);
-        interpreter.environment = interpreter.globals;
+        static bool initialized = false;
+        if (initialized) {
+                return;
+        }
 
+        interpreter.globals = environment_construct(NULL);
         LoxClock *lox_clock = lox_clock_construct();
         environment_define(interpreter.globals, "clock", lox_callable_object_construct((LoxCallable *)lox_clock));
+        interpreter.environment = interpreter.globals;
+        interpreter.locals = set_construct(element_compare);
+
+        initialized = true;
 }
 
 static const char *stringify(const Object *object) {
@@ -62,11 +90,32 @@ static void check_number_operands(const Token *operator, const Object *left, con
         interpret_error(operator, "Operands must be numbers.");
 }
 
+static Object *lookup_variable(const Token *name, const Expr *expr) {
+        Element element = {
+                .expr = expr,
+        };
+        Element *p = set_search(interpreter.locals, &element);
+        if (p == NULL) {
+                return environment_get(interpreter.globals, name);
+        }
+        return environment_get_at(interpreter.environment, name, p->depth);
+}
+
 static Object *evaluate_expr(const Expr *expr);
 
 static Object *evaluate_assign_expr(const AssignExpr *assign_expr) {
         Object *value = evaluate_expr(assign_expr->value);
-        environment_assign(interpreter.environment, assign_expr->name, value);
+
+        Element element = {
+                .expr = (const Expr *)assign_expr,
+        };
+        Element *p = set_search(interpreter.locals, &element);
+        if (p == NULL) {
+                environment_assign(interpreter.globals, assign_expr->name, value);
+        } else {
+                environment_assign_at(interpreter.environment, assign_expr->name, value, p->depth);
+        }
+
         return value;
 }
 
@@ -180,7 +229,7 @@ static Object *evaluate_unary_expr(const UnaryExpr *unary_expr) {
 }
 
 static Object *evaluate_variable_expr(const VariableExpr *variable_expr) {
-        return environment_get(interpreter.environment, variable_expr->name);
+        return lookup_variable(variable_expr->name, (const Expr *)variable_expr);
 }
 
 static Object *evaluate_expr(const Expr *expr) {
@@ -259,7 +308,7 @@ static Object *execute_while_stmt(const WhileStmt *while_stmt) {
         return NULL;
 }
 
-static Object * execute_stmt(const Stmt *stmt) {
+static Object *execute_stmt(const Stmt *stmt) {
         switch (stmt->type) {
         case STMT_BLOCK:
                 return execute_block_stmt((const BlockStmt *)stmt);
@@ -312,4 +361,9 @@ Object *execute_block(Vector *statements, Environment *environment) {
 
         interpreter.environment = previous;
         return result;
+}
+
+void interpreter_resolve(const Expr *expr, size_t depth) {
+        init();
+        set_insert(interpreter.locals, element_construct(expr, depth));
 }

@@ -2,104 +2,48 @@
 #include "lox/errors.h"
 #include "lox/object.h"
 #include "lox/token.h"
+#include "util/set.h"
 #include "util/xmalloc.h"
 
 #include <string.h>
 
-typedef struct Node Node;
-struct Node {
+typedef struct {
         const char *name;
         Object *value;
-        size_t level;
-        Node *lch;
-        Node *rch;
-};
+} Element;
 
-static Node *node_construct(const char *name, Object *value) {
-        Node *node = xmalloc(sizeof(Node));
-        node->name = name;
-        node->value = value;
-        node->level = 0;
-        node->lch = NULL;
-        node->rch = NULL;
-        return node;
+static int element_compare(const void *element1, const void *element2) {
+        const char *name1 = ((const Element *)element1)->name;
+        const char *name2 = ((const Element *)element2)->name;
+        return strcmp(name1, name2);
 }
 
-static void skew(Node **rootp) {
-        Node *root = *rootp;
-        if (root == NULL || root->lch == NULL || root->level != root->lch->level) {
-                return;
-        }
-        Node *lch = root->lch;
-        root->lch = lch->rch;
-        lch->rch = root;
-        *rootp = lch;
-}
-
-static void split(Node **rootp) {
-        Node *root = *rootp;
-        if (root == NULL || root->rch == NULL || root->rch->rch == NULL || root->level != root->rch->rch->level) {
-                return;
-        }
-        Node *rch = root->rch;
-        root->rch = rch->lch;
-        rch->lch = root;
-        rch->level++;
-        *rootp = rch;
-}
-
-static void insert(Node **rootp, const char *name, Object *value) {
-        Node *root = *rootp;
-        if (root == NULL) {
-                *rootp = node_construct(name, value);
-                return;
-        }
-
-        int c = strcmp(name, root->name);
-        if (c < 0) {
-                insert(&root->lch, name, value);
-        } else if (c > 0) {
-                insert(&root->rch, name, value);
-        } else {
-                root->value = value;
-        }
-
-        skew(&root);
-        split(&root);
-        *rootp = root;
-}
-
-static Node *search(Node *root, const char *name) {
-        if (root == NULL) {
-                return NULL;
-        }
-
-        int c = strcmp(name, root->name);
-        if (c < 0) {
-                return search(root->lch, name);
-        } else if (c > 0) {
-                return search(root->rch, name);
-        } else {
-                return root;
-        }
+static Element *element_construct(const char *name, Object *value) {
+        Element *element = xmalloc(sizeof(Element));
+        element->name = name;
+        element->value = value;
+        return element;
 }
 
 struct Environment {
-        Node *root;
+        Set *values;
         Environment *enclosing;
 };
 
 Environment *environment_construct(Environment *enclosing) {
         Environment *environment = xmalloc(sizeof(Environment));
-        environment->root = NULL;
+        environment->values = set_construct(element_compare);
         environment->enclosing = enclosing;
         return environment;
 }
 
 Object *environment_get(const Environment *environment, const Token *name) {
-        Node *node = search(environment->root, name->lexeme);
-        if (node != NULL) {
-                return node->value;
+        Element element = {
+                .name = name->lexeme,
+        };
+        Element *p = set_search(environment->values, &element);
+        if (p != NULL) {
+                return p->value;
         }
         if (environment->enclosing != NULL) {
                 return environment_get(environment->enclosing, name);
@@ -107,14 +51,29 @@ Object *environment_get(const Environment *environment, const Token *name) {
         interpret_error(name, "Undefined variable '%s'.", name->lexeme);
 }
 
+static Environment *ancestor(const Environment *environment, size_t depth) {
+        Environment *p = (Environment *)environment;
+        for (size_t i = 0; i < depth; i++) {
+                p = p->enclosing;
+        }
+        return p;
+}
+
+Object *environment_get_at(const Environment *environment, const Token *name, size_t depth) {
+        return environment_get(ancestor(environment, depth), name);
+}
+
 void environment_define(Environment *environment, const char *name, Object *value) {
-        insert(&environment->root, name, value);
+        set_insert(environment->values, element_construct(name, value));
 }
 
 void environment_assign(Environment *environment, const Token *name, Object *value) {
-        Node *node = search(environment->root, name->lexeme);
-        if (node != NULL) {
-                node->value = value;
+        Element element = {
+                .name = name->lexeme,
+        };
+        Element *p = set_search(environment->values, &element);
+        if (p != NULL) {
+                p->value = value;
                 return;
         }
         if (environment->enclosing != NULL) {
@@ -122,4 +81,8 @@ void environment_assign(Environment *environment, const Token *name, Object *val
                 return;
         }
         interpret_error(name, "Undefined variable '%s'.", name->lexeme);
+}
+
+void environment_assign_at(Environment *environment, const Token *name, Object *value, size_t depth) {
+        environment_assign(ancestor(environment, depth), name, value);
 }

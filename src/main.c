@@ -6,6 +6,7 @@
 #include "lox/ast_printer.h"
 #include "lox/interpreter.h"
 #include "lox/parser.h"
+#include "lox/resolver.h"
 #include "lox/scanner.h"
 #include "lox/token.h"
 #include "util/vector.h"
@@ -64,7 +65,9 @@ static void run(const char *source) {
         if (has_scan_error()) {
                 exit(65);
         }
-        interpret_stmts(parse_stmts(tokens));
+        Vector *statements = parse_stmts(tokens);
+        resolve_stmts(statements);
+        interpret_stmts(statements);
 }
 
 int main(int argc, char *argv[]) {
