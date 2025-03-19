@@ -1,6 +1,8 @@
 #include "lox/lox_instance.h"
 #include "lox/errors.h"
+#include "lox/lox_callable.h"
 #include "lox/lox_class.h"
+#include "lox/lox_function.h"
 #include "lox/object.h"
 #include "lox/token.h"
 #include "util/set.h"
@@ -45,15 +47,29 @@ const char *lox_instance_to_string(const LoxInstance *instance) {
         return str;
 }
 
+static LoxFunction *find_method(const LoxInstance *instance, const char *name) {
+        Method method = {
+                .name = name,
+        };
+        Method *p = set_search(instance->fields, &method);
+        return p == NULL ? NULL : p->function;
+}
+
 Object *lox_instance_get(const LoxInstance *instance, const Token *name) {
         Element element = {
                 .name = name->lexeme,
         };
         Element *p = set_search(instance->fields, &element);
-        if (p == NULL) {
-                interpret_error(name, "Undefined property '%s'.", name->lexeme);
+        if (p != NULL) {
+                return p->value;
         }
-        return p->value;
+
+        LoxFunction *method = find_method(instance, name->lexeme);
+        if (method != NULL) {
+                return lox_callable_object_construct((LoxCallable *)method);
+        }
+
+        interpret_error(name, "Undefined property '%s'.", name->lexeme);
 }
 
 void lox_instance_set(LoxInstance *instance, const Token *name, Object *value) {

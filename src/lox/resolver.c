@@ -32,6 +32,7 @@ static Element *element_construct(const char *name, bool boolean) {
 typedef enum {
         FUNCTION_NONE,
         FUNCTION_FUNCTION,
+        FUNCTION_METHOD,
 } FunctionType;
 
 static struct {
@@ -219,6 +220,12 @@ static void resolve_block_stmt(const BlockStmt *block_stmt) {
 static void resolve_class_stmt(const ClassStmt *class_stmt) {
         declare(class_stmt->name);
         define(class_stmt->name);
+
+        size_t num_methods = vector_size(class_stmt->methods);
+        for (size_t i = 0; i < num_methods; i++) {
+                FunctionStmt *method = vector_at(class_stmt->methods, i);
+                resolve_function(method, FUNCTION_METHOD);
+        }
 }
 
 static void resolve_expression_stmt(const ExpressionStmt *expression_stmt) {

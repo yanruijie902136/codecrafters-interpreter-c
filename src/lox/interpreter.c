@@ -288,8 +288,18 @@ static Object *execute_block_stmt(const BlockStmt *block_stmt) {
 
 static Object *execute_class_stmt(const ClassStmt *class_stmt) {
         environment_define(interpreter.environment, class_stmt->name->lexeme, NULL);
-        LoxClass *class = lox_class_construct(class_stmt->name->lexeme);
+
+        Set *methods = set_construct(method_compare);
+        size_t num_methods = vector_size(class_stmt->methods);
+        for (size_t i = 0; i < num_methods; i++) {
+                FunctionStmt *method = vector_at(class_stmt->methods, i);
+                LoxFunction *function = lox_function_construct(method, interpreter.environment);
+                set_insert(methods, method_construct(method->name->lexeme, function));
+        }
+
+        LoxClass *class = lox_class_construct(class_stmt->name->lexeme, methods);
         environment_assign(interpreter.environment, class_stmt->name, lox_callable_object_construct((LoxCallable *)class));
+
         return NULL;
 }
 
