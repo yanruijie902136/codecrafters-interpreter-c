@@ -1,5 +1,6 @@
 #include "lox/lox_class.h"
 #include "lox/lox_callable.h"
+#include "lox/lox_function.h"
 #include "lox/lox_instance.h"
 #include "util/set.h"
 #include "util/xmalloc.h"
@@ -19,11 +20,17 @@ const char *lox_class_to_string(const LoxClass *class) {
 }
 
 size_t lox_class_arity(const LoxClass *class) {
-        return 0;
+        LoxFunction *initializer = lox_class_find_method(class, "init");
+        return initializer == NULL ? 0 : lox_function_arity(initializer);
 }
 
 Object *lox_class_call(LoxClass *class, Vector *arguments) {
         LoxInstance *instance = lox_instance_construct(class);
+        LoxFunction *initializer = lox_class_find_method(class, "init");
+        if (initializer != NULL) {
+                LoxFunction *function = lox_function_bind(initializer, instance);
+                lox_function_call(function, arguments);
+        }
         return lox_instance_object_construct(instance);
 }
 

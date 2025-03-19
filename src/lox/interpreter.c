@@ -101,7 +101,7 @@ static Object *lookup_variable(const Token *name, const Expr *expr) {
         if (p == NULL) {
                 return environment_get(interpreter.globals, name);
         }
-        return environment_get_at(interpreter.environment, name, p->depth);
+        return environment_get_at(interpreter.environment, name->lexeme, p->depth);
 }
 
 static Object *evaluate_expr(const Expr *expr);
@@ -299,7 +299,8 @@ static Object *execute_class_stmt(const ClassStmt *class_stmt) {
         size_t num_methods = vector_size(class_stmt->methods);
         for (size_t i = 0; i < num_methods; i++) {
                 FunctionStmt *method = vector_at(class_stmt->methods, i);
-                LoxFunction *function = lox_function_construct(method, interpreter.environment);
+                bool is_initializer = strcmp(method->name->lexeme, "init") == 0;
+                LoxFunction *function = lox_function_construct(method, interpreter.environment, is_initializer);
                 set_insert(methods, method_construct(method->name->lexeme, function));
         }
 
@@ -315,7 +316,7 @@ static Object *execute_expression_stmt(const ExpressionStmt *expression_stmt) {
 }
 
 static Object *execute_function_stmt(const FunctionStmt *function_stmt) {
-        LoxFunction *function = lox_function_construct(function_stmt, interpreter.environment);
+        LoxFunction *function = lox_function_construct(function_stmt, interpreter.environment, false);
         Object *object = lox_callable_object_construct((LoxCallable *)function);
         environment_define(interpreter.environment, function_stmt->name->lexeme, object);
         return NULL;

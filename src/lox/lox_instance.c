@@ -48,10 +48,10 @@ const char *lox_instance_to_string(const LoxInstance *instance) {
         return str;
 }
 
-static LoxFunction *bind(LoxFunction *function, LoxInstance *instance) {
+LoxFunction *lox_function_bind(LoxFunction *function, LoxInstance *instance) {
         Environment *environment = environment_construct(function->closure);
         environment_define(environment, "this", lox_instance_object_construct(instance));
-        return lox_function_construct(function->declaration, environment);
+        return lox_function_construct(function->declaration, environment, function->is_initializer);
 }
 
 Object *lox_instance_get(LoxInstance *instance, const Token *name) {
@@ -65,7 +65,7 @@ Object *lox_instance_get(LoxInstance *instance, const Token *name) {
 
         LoxFunction *method = lox_class_find_method(instance->class, name->lexeme);
         if (method != NULL) {
-                return lox_callable_object_construct((LoxCallable *)bind(method, instance));
+                return lox_callable_object_construct((LoxCallable *)lox_function_bind(method, instance));
         }
 
         interpret_error(name, "Undefined property '%s'.", name->lexeme);

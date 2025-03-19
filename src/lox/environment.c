@@ -59,8 +59,13 @@ static Environment *ancestor(const Environment *environment, size_t depth) {
         return p;
 }
 
-Object *environment_get_at(const Environment *environment, const Token *name, size_t depth) {
-        return environment_get(ancestor(environment, depth), name);
+Object *environment_get_at(const Environment *environment, const char *name, size_t depth) {
+        Environment *env = ancestor(environment, depth);
+        Element element = {
+                .name = name,
+        };
+        Element *p = set_search(env->values, &element);
+        return p->value;
 }
 
 void environment_define(Environment *environment, const char *name, Object *value) {

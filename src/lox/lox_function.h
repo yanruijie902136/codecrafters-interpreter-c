@@ -11,9 +11,10 @@ typedef struct {
         LoxCallable base;
         const FunctionStmt *declaration;
         Environment *closure;
+        bool is_initializer;
 } LoxFunction;
 
-LoxFunction *lox_function_construct(const FunctionStmt *declaration, Environment *closure);
+LoxFunction *lox_function_construct(const FunctionStmt *declaration, Environment *closure, bool is_initializer);
 const char *lox_function_to_string(const LoxFunction *function);
 size_t lox_function_arity(const LoxFunction *function);
 Object *lox_function_call(LoxFunction *function, Vector *arguments);

@@ -8,7 +8,7 @@ typedef struct Environment Environment;
 
 Environment *environment_construct(Environment *enclosing);
 Object *environment_get(const Environment *environment, const Token *name);
-Object *environment_get_at(const Environment *environment, const Token *name, size_t depth);
+Object *environment_get_at(const Environment *environment, const char *name, size_t depth);
 void environment_define(Environment *environment, const char *name, Object *value);
 void environment_assign(Environment *environment, const Token *name, Object *value);
 void environment_assign_at(Environment *environment, const Token *name, Object *value, size_t depth);
