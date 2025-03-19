@@ -3,9 +3,7 @@
 
 #include <stddef.h>
 
-#include "lox/environment.h"
 #include "lox/object.h"
-#include "lox/stmt.h"
 #include "util/vector.h"
 
 typedef enum {
@@ -22,14 +20,7 @@ typedef struct {
         LoxCallable base;
 } LoxClock;
 
-typedef struct {
-        LoxCallable base;
-        const FunctionStmt *declaration;
-        Environment *closure;
-} LoxFunction;
-
 LoxClock *lox_clock_construct(void);
-LoxFunction *lox_function_construct(const FunctionStmt *declaration, Environment *closure);
 const char *lox_callable_to_string(const LoxCallable *callable);
 size_t lox_callable_arity(const LoxCallable *callable);
 Object *lox_callable_call(LoxCallable *callable, Vector *arguments);

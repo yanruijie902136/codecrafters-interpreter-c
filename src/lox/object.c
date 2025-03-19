@@ -1,5 +1,6 @@
 #include "lox/object.h"
 #include "lox/lox_callable.h"
+#include "lox/lox_instance.h"
 #include "util/xmalloc.h"
 
 #include <assert.h>
@@ -10,6 +11,7 @@
 typedef enum {
         OBJECT_BOOLEAN,
         OBJECT_LOX_CALLABLE,
+        OBJECT_LOX_INSTANCE,
         OBJECT_NIL,
         OBJECT_NUMBER,
         OBJECT_STRING,
@@ -22,6 +24,7 @@ struct Object {
                 double number;
                 char *string;
                 LoxCallable *callable;
+                LoxInstance *instance;
         } data;
 };
 
@@ -49,6 +52,13 @@ Object *lox_callable_object_construct(LoxCallable *callable) {
         Object *object = xmalloc(sizeof(Object));
         object->type = OBJECT_LOX_CALLABLE;
         object->data.callable = callable;
+        return object;
+}
+
+Object *lox_instance_object_construct(LoxInstance *instance) {
+        Object *object = xmalloc(sizeof(Object));
+        object->type = OBJECT_LOX_INSTANCE;
+        object->data.instance = instance;
         return object;
 }
 
@@ -91,6 +101,8 @@ const char *object_to_string(const Object *object) {
                 return object->data.boolean ? "true" : "false";
         case OBJECT_LOX_CALLABLE:
                 return lox_callable_to_string(object->data.callable);
+        case OBJECT_LOX_INSTANCE:
+                return lox_instance_to_string(object->data.instance);
         case OBJECT_NIL:
                 return "nil";
         case OBJECT_NUMBER:
@@ -125,6 +137,8 @@ bool object_equals(const Object *object, const Object *other) {
                 return object->data.number == other->data.number;
         case OBJECT_STRING:
                 return strcmp(object->data.string, other->data.string) == 0;
+        default:
+                return false;
         }
 }
 

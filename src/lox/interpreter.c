@@ -4,6 +4,7 @@
 #include "lox/expr.h"
 #include "lox/lox_callable.h"
 #include "lox/lox_class.h"
+#include "lox/lox_function.h"
 #include "lox/object.h"
 #include "lox/stmt.h"
 #include "lox/token.h"

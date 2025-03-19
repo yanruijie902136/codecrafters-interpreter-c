@@ -2,6 +2,8 @@
 #define CODECRAFTERS_INTERPRETER_LOX_CLASS_H
 
 #include "lox/lox_callable.h"
+#include "lox/object.h"
+#include "util/vector.h"
 
 typedef struct {
         LoxCallable base;
@@ -9,5 +11,8 @@ typedef struct {
 } LoxClass;
 
 LoxClass *lox_class_construct(const char *name);
+const char *lox_class_to_string(const LoxClass *class);
+size_t lox_class_arity(const LoxClass *class);
+Object *lox_class_call(LoxClass *class, Vector *arguments);
 
 #endif
