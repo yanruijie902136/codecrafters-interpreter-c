@@ -30,6 +30,11 @@ static Element *element_construct(const char *name, bool boolean) {
 }
 
 typedef enum {
+        CLASS_NONE,
+        CLASS_CLASS,
+} ClassType;
+
+typedef enum {
         FUNCTION_NONE,
         FUNCTION_FUNCTION,
         FUNCTION_METHOD,
@@ -37,6 +42,7 @@ typedef enum {
 
 static struct {
         Vector *scopes;
+        ClassType current_class;
         FunctionType current_function;
 } resolver;
 
@@ -46,6 +52,7 @@ static void init(void) {
                 return;
         }
         resolver.scopes = vector_construct();
+        resolver.current_class = CLASS_NONE;
         resolver.current_function = FUNCTION_NONE;
         initialized = true;
 }
@@ -157,6 +164,9 @@ static void resolve_set_expr(const SetExpr *set_expr) {
 }
 
 static void resolve_this_expr(const ThisExpr *this_expr) {
+        if (resolver.current_class == CLASS_NONE) {
+                resolve_error(this_expr->keyword, "Can't use 'this' outside of a class.");
+        }
         resolve_local((const Expr *)this_expr, this_expr->keyword);
 }
 
@@ -225,6 +235,9 @@ static void resolve_block_stmt(const BlockStmt *block_stmt) {
 }
 
 static void resolve_class_stmt(const ClassStmt *class_stmt) {
+        ClassType enclosing_class = resolver.current_class;
+        resolver.current_class = CLASS_CLASS;
+
         declare(class_stmt->name);
         define(class_stmt->name);
 
@@ -239,6 +252,8 @@ static void resolve_class_stmt(const ClassStmt *class_stmt) {
         }
 
         end_scope();
+
+        resolver.current_class = enclosing_class;
 }
 
 static void resolve_expression_stmt(const ExpressionStmt *expression_stmt) {
