@@ -29,8 +29,14 @@ static Element *element_construct(const char *name, bool boolean) {
         return element;
 }
 
+typedef enum {
+        FUNCTION_NONE,
+        FUNCTION_FUNCTION,
+} FunctionType;
+
 static struct {
         Vector *scopes;
+        FunctionType current_function;
 } resolver;
 
 static void init(void) {
@@ -39,6 +45,7 @@ static void init(void) {
                 return;
         }
         resolver.scopes = vector_construct();
+        resolver.current_function = FUNCTION_NONE;
         initialized = true;
 }
 
@@ -89,7 +96,10 @@ static void resolve_local(const Expr *expr, const Token *name) {
         }
 }
 
-static void resolve_function(const FunctionStmt *function) {
+static void resolve_function(const FunctionStmt *function, FunctionType type) {
+        FunctionType enclosing_function = resolver.current_function;
+        resolver.current_function = type;
+
         begin_scope();
         size_t num_params = vector_size(function->params);
         for (size_t i = 0; i < num_params; i++) {
@@ -99,6 +109,8 @@ static void resolve_function(const FunctionStmt *function) {
         }
         resolve_stmts(function->body);
         end_scope();
+
+        resolver.current_function = enclosing_function;
 }
 
 static void resolve_expr(const Expr *expr);
@@ -196,7 +208,7 @@ static void resolve_expression_stmt(const ExpressionStmt *expression_stmt) {
 static void resolve_function_stmt(const FunctionStmt *function_stmt) {
         declare(function_stmt->name);
         define(function_stmt->name);
-        resolve_function(function_stmt);
+        resolve_function(function_stmt, FUNCTION_FUNCTION);
 }
 
 static void resolve_if_stmt(const IfStmt *if_stmt) {
@@ -212,6 +224,10 @@ static void resolve_print_stmt(const PrintStmt *print_stmt) {
 }
 
 static void resolve_return_stmt(const ReturnStmt *return_stmt) {
+        if (resolver.current_function == FUNCTION_NONE) {
+                resolve_error(return_stmt->keyword, "Can't return from top-level code.");
+        }
+
         if (return_stmt->value != NULL) {
                 resolve_expr(return_stmt->value);
         }
