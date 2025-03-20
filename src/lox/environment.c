@@ -2,48 +2,26 @@
 #include "lox/errors.h"
 #include "lox/object.h"
 #include "lox/token.h"
-#include "util/set.h"
+#include "util/map.h"
 #include "util/xmalloc.h"
 
 #include <string.h>
 
-typedef struct {
-        const char *name;
-        Object *value;
-} Element;
-
-static int element_compare(const void *element1, const void *element2) {
-        const char *name1 = ((const Element *)element1)->name;
-        const char *name2 = ((const Element *)element2)->name;
-        return strcmp(name1, name2);
-}
-
-static Element *element_construct(const char *name, Object *value) {
-        Element *element = xmalloc(sizeof(Element));
-        element->name = name;
-        element->value = value;
-        return element;
-}
-
 struct Environment {
-        Set *values;
+        Map *values;
         Environment *enclosing;
 };
 
 Environment *environment_construct(Environment *enclosing) {
         Environment *environment = xmalloc(sizeof(Environment));
-        environment->values = set_construct(element_compare);
+        environment->values = map_construct(str_compare);
         environment->enclosing = enclosing;
         return environment;
 }
 
 Object *environment_get(const Environment *environment, const Token *name) {
-        Element element = {
-                .name = name->lexeme,
-        };
-        Element *p = set_search(environment->values, &element);
-        if (p != NULL) {
-                return p->value;
+        if (map_contains(environment->values, name->lexeme)) {
+                return map_get(environment->values, name->lexeme);
         }
         if (environment->enclosing != NULL) {
                 return environment_get(environment->enclosing, name);
@@ -61,24 +39,16 @@ static Environment *ancestor(const Environment *environment, size_t depth) {
 
 Object *environment_get_at(const Environment *environment, const char *name, size_t depth) {
         Environment *env = ancestor(environment, depth);
-        Element element = {
-                .name = name,
-        };
-        Element *p = set_search(env->values, &element);
-        return p->value;
+        return map_get(env->values, name);
 }
 
 void environment_define(Environment *environment, const char *name, Object *value) {
-        set_insert(environment->values, element_construct(name, value));
+        map_put(environment->values, name, value);
 }
 
 void environment_assign(Environment *environment, const Token *name, Object *value) {
-        Element element = {
-                .name = name->lexeme,
-        };
-        Element *p = set_search(environment->values, &element);
-        if (p != NULL) {
-                p->value = value;
+        if (map_contains(environment->values, name->lexeme)) {
+                map_put(environment->values, name->lexeme, value);
                 return;
         }
         if (environment->enclosing != NULL) {

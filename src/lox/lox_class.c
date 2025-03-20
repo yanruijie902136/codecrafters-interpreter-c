@@ -2,12 +2,12 @@
 #include "lox/lox_callable.h"
 #include "lox/lox_function.h"
 #include "lox/lox_instance.h"
-#include "util/set.h"
+#include "util/map.h"
 #include "util/xmalloc.h"
 
 #include <string.h>
 
-LoxClass *lox_class_construct(const char *name, Set *methods) {
+LoxClass *lox_class_construct(const char *name, Map *methods) {
         LoxClass *class = xmalloc(sizeof(LoxClass));
         class->base.type = LOX_CALLABLE_CLASS;
         class->name = name;
@@ -34,23 +34,9 @@ Object *lox_class_call(LoxClass *class, Vector *arguments) {
         return lox_instance_object_construct(instance);
 }
 
-int method_compare(const void *m1, const void *m2) {
-        const char *name1 = ((const Method *)m1)->name;
-        const char *name2 = ((const Method *)m2)->name;
-        return strcmp(name1, name2);
-}
-
-Method *method_construct(const char *name, LoxFunction *function) {
-        Method *method = xmalloc(sizeof(Method));
-        method->name = name;
-        method->function = function;
-        return method;
-}
-
 LoxFunction *lox_class_find_method(const LoxClass *class, const char *name) {
-        Method method = {
-                .name = name,
-        };
-        Method *p = set_search(class->methods, &method);
-        return p == NULL ? NULL : p->function;
+        if (map_contains(class->methods, name)) {
+                return map_get(class->methods, name);
+        }
+        return NULL;
 }

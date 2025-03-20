@@ -2,7 +2,9 @@
 #include "lox/expr.h"
 #include "lox/object.h"
 
+#include <err.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static void print_expr(const Expr *expr);
 
@@ -44,6 +46,8 @@ static void print_expr(const Expr *expr) {
         case EXPR_UNARY:
                 print_unary_expr((const UnaryExpr *)expr);
                 break;
+        default:
+                errx(EXIT_FAILURE, "unexpected expr in ast_printer");
         }
 }
 

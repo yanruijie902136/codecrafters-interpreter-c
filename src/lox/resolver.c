@@ -4,30 +4,11 @@
 #include "lox/interpreter.h"
 #include "lox/stmt.h"
 #include "lox/token.h"
-#include "util/set.h"
+#include "util/map.h"
 #include "util/vector.h"
-#include "util/xmalloc.h"
 
 #include <stdbool.h>
 #include <string.h>
-
-typedef struct {
-        const char *name;
-        bool boolean;
-} Element;
-
-static int element_compare(const void *element1, const void *element2) {
-        const char *name1 = ((const Element *)element1)->name;
-        const char *name2 = ((const Element *)element2)->name;
-        return strcmp(name1, name2);
-}
-
-static Element *element_construct(const char *name, bool boolean) {
-        Element *element = xmalloc(sizeof(Element));
-        element->name = name;
-        element->boolean = boolean;
-        return element;
-}
 
 typedef enum {
         CLASS_NONE,
@@ -59,7 +40,7 @@ static void init(void) {
 }
 
 static void begin_scope(void) {
-        vector_push_back(resolver.scopes, set_construct(element_compare));
+        vector_push_back(resolver.scopes, map_construct(str_compare));
 }
 
 static void end_scope(void) {
@@ -70,35 +51,27 @@ static void declare(const Token *name) {
         if (vector_is_empty(resolver.scopes)) {
                 return;
         }
-        Set *scope = vector_at_back(resolver.scopes);
+        Map *scope = vector_at_back(resolver.scopes);
 
-        Element element = {
-                .name = name->lexeme,
-        };
-        if (set_search(scope, &element) != NULL) {
+        if (map_contains(scope, name->lexeme)) {
                 resolve_error(name, "Already a variable with this name in this scope.");
         }
-
-        set_insert(scope, element_construct(name->lexeme, false));
+        map_put(scope, name->lexeme, (void *)false);
 }
 
 static void define(const Token *name) {
         if (vector_is_empty(resolver.scopes)) {
                 return;
         }
-        Set *scope = vector_at_back(resolver.scopes);
-        set_insert(scope, element_construct(name->lexeme, true));
+        Map *scope = vector_at_back(resolver.scopes);
+        map_put(scope, name->lexeme, (void *)true);
 }
 
 static void resolve_local(const Expr *expr, const Token *name) {
-        Element element = {
-                .name = name->lexeme,
-        };
-
         size_t num_scopes = vector_size(resolver.scopes);
         for (size_t i = 0; i < num_scopes; i++) {
-                Set *scope = vector_at(resolver.scopes, num_scopes - i - 1);
-                if (set_search(scope, &element) != NULL) {
+                Map *scope = vector_at(resolver.scopes, num_scopes - i - 1);
+                if (map_contains(scope, name->lexeme)) {
                         interpreter_resolve(expr, i);
                         return;
                 }
@@ -177,13 +150,10 @@ static void resolve_unary_expr(const UnaryExpr *unary_expr) {
 
 static void resolve_variable_expr(const VariableExpr *variable_expr) {
         if (!vector_is_empty(resolver.scopes)) {
-                Set *scope = vector_at_back(resolver.scopes);
-                Element element = {
-                        .name = variable_expr->name->lexeme,
-                };
-                Element *p = set_search(scope, &element);
-                if (p != NULL && !p->boolean) {
-                        resolve_error(variable_expr->name, "Can't read local variable in its own initializer.");
+                Map *scope = vector_at_back(resolver.scopes);
+                const Token *name = variable_expr->name;
+                if (map_contains(scope, name->lexeme) && !(bool)map_get(scope, name->lexeme)) {
+                        resolve_error(name, "Can't read local variable in its own initializer.");
                 }
         }
         resolve_local((const Expr *)variable_expr, variable_expr->name);
@@ -243,8 +213,8 @@ static void resolve_class_stmt(const ClassStmt *class_stmt) {
         define(class_stmt->name);
 
         begin_scope();
-        Set *scope = vector_at_back(resolver.scopes);
-        set_insert(scope, element_construct("this", true));
+        Map *scope = vector_at_back(resolver.scopes);
+        map_put(scope, "this", (void *)true);
 
         size_t num_methods = vector_size(class_stmt->methods);
         for (size_t i = 0; i < num_methods; i++) {

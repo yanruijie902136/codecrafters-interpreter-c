@@ -9,7 +9,7 @@
 #include "lox/object.h"
 #include "lox/stmt.h"
 #include "lox/token.h"
-#include "util/set.h"
+#include "util/map.h"
 #include "util/vector.h"
 #include "util/xmalloc.h"
 
@@ -18,28 +18,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct {
-        const Expr *expr;
-        size_t depth;
-} Element;
-
-static int element_compare(const void *element1, const void *element2) {
-        const Expr *expr1 = ((const Element *)element1)->expr;
-        const Expr *expr2 = ((const Element *)element2)->expr;
-        return expr1 == expr2 ? 0 : (expr1 < expr2 ? -1 : 1);
-}
-
-static Element *element_construct(const Expr *expr, size_t depth) {
-        Element *element = xmalloc(sizeof(Element));
-        element->expr = expr;
-        element->depth = depth;
-        return element;
-}
-
 static struct {
         Environment *globals;
         Environment *environment;
-        Set *locals;
+        Map *locals;
 } interpreter;
 
 static void init(void) {
@@ -52,7 +34,7 @@ static void init(void) {
         LoxClock *lox_clock = lox_clock_construct();
         environment_define(interpreter.globals, "clock", lox_callable_object_construct((LoxCallable *)lox_clock));
         interpreter.environment = interpreter.globals;
-        interpreter.locals = set_construct(element_compare);
+        interpreter.locals = map_construct(ptr_compare);
 
         initialized = true;
 }
@@ -94,14 +76,11 @@ static void check_number_operands(const Token *operator, const Object *left, con
 }
 
 static Object *lookup_variable(const Token *name, const Expr *expr) {
-        Element element = {
-                .expr = expr,
-        };
-        Element *p = set_search(interpreter.locals, &element);
-        if (p == NULL) {
-                return environment_get(interpreter.globals, name);
+        if (map_contains(interpreter.locals, expr)) {
+                size_t depth = (size_t)map_get(interpreter.locals, expr);
+                return environment_get_at(interpreter.environment, name->lexeme, depth);
         }
-        return environment_get_at(interpreter.environment, name->lexeme, p->depth);
+        return environment_get(interpreter.globals, name);
 }
 
 static Object *evaluate_expr(const Expr *expr);
@@ -109,14 +88,11 @@ static Object *evaluate_expr(const Expr *expr);
 static Object *evaluate_assign_expr(const AssignExpr *assign_expr) {
         Object *value = evaluate_expr(assign_expr->value);
 
-        Element element = {
-                .expr = (const Expr *)assign_expr,
-        };
-        Element *p = set_search(interpreter.locals, &element);
-        if (p == NULL) {
-                environment_assign(interpreter.globals, assign_expr->name, value);
+        if (map_contains(interpreter.locals, assign_expr)) {
+                size_t depth = (size_t)map_get(interpreter.locals, assign_expr);
+                environment_assign_at(interpreter.environment, assign_expr->name, value, depth);
         } else {
-                environment_assign_at(interpreter.environment, assign_expr->name, value, p->depth);
+                environment_assign(interpreter.globals, assign_expr->name, value);
         }
 
         return value;
@@ -295,13 +271,13 @@ static Object *execute_block_stmt(const BlockStmt *block_stmt) {
 static Object *execute_class_stmt(const ClassStmt *class_stmt) {
         environment_define(interpreter.environment, class_stmt->name->lexeme, NULL);
 
-        Set *methods = set_construct(method_compare);
+        Map *methods = map_construct(str_compare);
         size_t num_methods = vector_size(class_stmt->methods);
         for (size_t i = 0; i < num_methods; i++) {
                 FunctionStmt *method = vector_at(class_stmt->methods, i);
                 bool is_initializer = strcmp(method->name->lexeme, "init") == 0;
                 LoxFunction *function = lox_function_construct(method, interpreter.environment, is_initializer);
-                set_insert(methods, method_construct(method->name->lexeme, function));
+                map_put(methods, method->name->lexeme, function);
         }
 
         LoxClass *class = lox_class_construct(class_stmt->name->lexeme, methods);
@@ -418,5 +394,5 @@ Object *execute_block(Vector *statements, Environment *environment) {
 
 void interpreter_resolve(const Expr *expr, size_t depth) {
         init();
-        set_insert(interpreter.locals, element_construct(expr, depth));
+        map_put(interpreter.locals, expr, (void *)depth);
 }
