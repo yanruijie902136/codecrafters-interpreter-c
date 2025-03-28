@@ -67,6 +67,14 @@ SetExpr *set_expr_construct(Expr *object, Token *name, Expr *value) {
         return set_expr;
 }
 
+SuperExpr *super_expr_construct(Token *keyword, Token *method) {
+        SuperExpr *super_expr = xmalloc(sizeof(SuperExpr));
+        super_expr->base.type = EXPR_SUPER;
+        super_expr->keyword = keyword;
+        super_expr->method = method;
+        return super_expr;
+}
+
 ThisExpr *this_expr_construct(Token *keyword) {
         ThisExpr *this_expr = xmalloc(sizeof(ThisExpr));
         this_expr->base.type = EXPR_THIS;

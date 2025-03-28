@@ -3,8 +3,13 @@
 
 #include "lox/object.h"
 #include "lox/token.h"
+#include "util/map.h"
 
 typedef struct Environment Environment;
+struct Environment {
+        Map *values;
+        Environment *enclosing;
+};
 
 Environment *environment_construct(Environment *enclosing);
 Object *environment_get(const Environment *environment, const Token *name);

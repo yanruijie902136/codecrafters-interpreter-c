@@ -13,6 +13,7 @@
 typedef enum {
         CLASS_NONE,
         CLASS_CLASS,
+        CLASS_SUBCLASS,
 } ClassType;
 
 typedef enum {
@@ -137,6 +138,15 @@ static void resolve_set_expr(const SetExpr *set_expr) {
         resolve_expr(set_expr->object);
 }
 
+static void resolve_super_expr(const SuperExpr *super_expr) {
+        if (resolver.current_class == CLASS_NONE) {
+                resolve_error(super_expr->keyword, "Can't use 'super' outside of a class.");
+        } else if (resolver.current_class != CLASS_SUBCLASS) {
+                resolve_error(super_expr->keyword, "Can't use 'super' in a class with no superclass.");
+        }
+        resolve_local((const Expr *)super_expr, super_expr->keyword);
+}
+
 static void resolve_this_expr(const ThisExpr *this_expr) {
         if (resolver.current_class == CLASS_NONE) {
                 resolve_error(this_expr->keyword, "Can't use 'this' outside of a class.");
@@ -185,6 +195,9 @@ static void resolve_expr(const Expr *expr) {
         case EXPR_SET:
                 resolve_set_expr((const SetExpr *)expr);
                 break;
+        case EXPR_SUPER:
+                resolve_super_expr((const SuperExpr *)expr);
+                break;
         case EXPR_THIS:
                 resolve_this_expr((const ThisExpr *)expr);
                 break;
@@ -213,10 +226,14 @@ static void resolve_class_stmt(const ClassStmt *class_stmt) {
         define(class_stmt->name);
 
         if (class_stmt->superclass != NULL) {
-            if (strcmp(class_stmt->superclass->name->lexeme, class_stmt->name->lexeme) == 0) {
-                resolve_error(class_stmt->superclass->name, "A class can't inherit from itself.");
-            }
-            resolve_variable_expr(class_stmt->superclass);
+                if (strcmp(class_stmt->superclass->name->lexeme, class_stmt->name->lexeme) == 0) {
+                        resolve_error(class_stmt->superclass->name, "A class can't inherit from itself.");
+                }
+                resolver.current_class = CLASS_SUBCLASS;
+                resolve_variable_expr(class_stmt->superclass);
+                begin_scope();
+                Map *scope = vector_at_back(resolver.scopes);
+                map_put(scope, "super", (void *)true);
         }
 
         begin_scope();
@@ -231,6 +248,10 @@ static void resolve_class_stmt(const ClassStmt *class_stmt) {
         }
 
         end_scope();
+
+        if (class_stmt->superclass != NULL) {
+                end_scope();
+        }
 
         resolver.current_class = enclosing_class;
 }

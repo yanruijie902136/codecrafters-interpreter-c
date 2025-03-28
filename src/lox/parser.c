@@ -218,6 +218,17 @@ static Expr *primary(void) {
                 return (Expr *)literal_expr_construct(previous()->literal);
         }
 
+        if (match(TOKEN_SUPER)) {
+                Token *keyword = previous();
+                if (!match(TOKEN_DOT)) {
+                        parse_error(peek(), "Expect '.' after 'super'.");
+                }
+                if (!match(TOKEN_IDENTIFIER)) {
+                        parse_error(peek(), "Expect superclass method name.");
+                }
+                return (Expr *)super_expr_construct(keyword, previous());
+        }
+
         if (match(TOKEN_THIS)) {
                 return (Expr *)this_expr_construct(previous());
         }
@@ -258,10 +269,10 @@ static Stmt *class_declaration(void) {
 
         VariableExpr *superclass = NULL;
         if (match(TOKEN_LESS)) {
-            if (!match(TOKEN_IDENTIFIER)) {
-                parse_error(peek(), "Expect superclass name.");
-            }
-            superclass = variable_expr_construct(previous());
+                if (!match(TOKEN_IDENTIFIER)) {
+                        parse_error(peek(), "Expect superclass name.");
+                }
+                superclass = variable_expr_construct(previous());
         }
 
         if (!match(TOKEN_LEFT_BRACE)) {

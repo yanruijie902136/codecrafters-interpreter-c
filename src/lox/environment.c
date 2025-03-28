@@ -7,11 +7,6 @@
 
 #include <string.h>
 
-struct Environment {
-        Map *values;
-        Environment *enclosing;
-};
-
 Environment *environment_construct(Environment *enclosing) {
         Environment *environment = xmalloc(sizeof(Environment));
         environment->values = map_construct(str_compare);

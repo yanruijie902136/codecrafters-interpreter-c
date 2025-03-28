@@ -14,6 +14,7 @@ typedef enum {
         EXPR_LITERAL,
         EXPR_LOGICAL,
         EXPR_SET,
+        EXPR_SUPER,
         EXPR_THIS,
         EXPR_UNARY,
         EXPR_VARIABLE,
@@ -88,6 +89,14 @@ typedef struct {
 } SetExpr;
 
 SetExpr *set_expr_construct(Expr *object, Token *name, Expr *value);
+
+typedef struct {
+        Expr base;
+        Token *keyword;
+        Token *method;
+} SuperExpr;
+
+SuperExpr *super_expr_construct(Token *keyword, Token *method);
 
 typedef struct {
         Expr base;

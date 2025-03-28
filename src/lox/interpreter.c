@@ -213,6 +213,22 @@ static Object *evaluate_set_expr(const SetExpr *set_expr) {
         return value;
 }
 
+static Object *evaluate_super_expr(const SuperExpr *super_expr) {
+        size_t depth = (size_t)map_get(interpreter.locals, super_expr);
+
+        Object *superclass_object = environment_get_at(interpreter.environment, "super", depth);
+        LoxClass *superclass = (LoxClass *)object_as_lox_callable(superclass_object);
+
+        Object *instance_object = environment_get_at(interpreter.environment, "this", depth - 1);
+        LoxInstance *instance = object_as_lox_instance(instance_object);
+
+        LoxFunction *method = lox_class_find_method(superclass, super_expr->method->lexeme);
+        if (method == NULL) {
+                interpret_error(super_expr->method, "Undefined property '%s'.", super_expr->method->lexeme);
+        }
+        return lox_callable_object_construct((LoxCallable *)lox_function_bind(method, instance));
+}
+
 static Object *evaluate_this_expr(const ThisExpr *this_expr) {
         return lookup_variable(this_expr->keyword, (const Expr *)this_expr);
 }
@@ -253,6 +269,8 @@ static Object *evaluate_expr(const Expr *expr) {
                 return evaluate_logical_expr((const LogicalExpr *)expr);
         case EXPR_SET:
                 return evaluate_set_expr((const SetExpr *)expr);
+        case EXPR_SUPER:
+                return evaluate_super_expr((const SuperExpr *)expr);
         case EXPR_THIS:
                 return evaluate_this_expr((const ThisExpr *)expr);
         case EXPR_UNARY:
@@ -269,16 +287,20 @@ static Object *execute_block_stmt(const BlockStmt *block_stmt) {
 }
 
 static Object *execute_class_stmt(const ClassStmt *class_stmt) {
-        LoxClass *superclass = NULL;
+        Object *superclass_object = NULL;
         if (class_stmt->superclass != NULL) {
-            Object *object = evaluate_variable_expr(class_stmt->superclass);
-            if (!object_is_lox_callable(object) || object_as_lox_callable(object)->type != LOX_CALLABLE_CLASS) {
-                interpret_error(class_stmt->superclass->name, "Superclass must be a class.");
-            }
-            superclass = (LoxClass *)object_as_lox_callable(object);
+                superclass_object = evaluate_variable_expr(class_stmt->superclass);
+                if (!object_is_lox_callable(superclass_object) || object_as_lox_callable(superclass_object)->type != LOX_CALLABLE_CLASS) {
+                        interpret_error(class_stmt->superclass->name, "Superclass must be a class.");
+                }
         }
 
         environment_define(interpreter.environment, class_stmt->name->lexeme, NULL);
+
+        if (class_stmt->superclass != NULL) {
+                interpreter.environment = environment_construct(interpreter.environment);
+                environment_define(interpreter.environment, "super", superclass_object);
+        }
 
         Map *methods = map_construct(str_compare);
         size_t num_methods = vector_size(class_stmt->methods);
@@ -289,7 +311,13 @@ static Object *execute_class_stmt(const ClassStmt *class_stmt) {
                 map_put(methods, method->name->lexeme, function);
         }
 
+        LoxClass *superclass = superclass_object == NULL ? NULL : (LoxClass *)object_as_lox_callable(superclass_object);
         LoxClass *class = lox_class_construct(class_stmt->name->lexeme, superclass, methods);
+
+        if (superclass != NULL) {
+                interpreter.environment = interpreter.environment->enclosing;
+        }
+
         environment_assign(interpreter.environment, class_stmt->name, lox_callable_object_construct((LoxCallable *)class));
 
         return NULL;

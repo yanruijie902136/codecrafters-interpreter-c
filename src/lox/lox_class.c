@@ -39,7 +39,7 @@ LoxFunction *lox_class_find_method(const LoxClass *class, const char *name) {
         if (map_contains(class->methods, name)) {
                 return map_get(class->methods, name);
         } else if (class->superclass != NULL) {
-            return lox_class_find_method(class->superclass, name);
+                return lox_class_find_method(class->superclass, name);
         }
         return NULL;
 }
