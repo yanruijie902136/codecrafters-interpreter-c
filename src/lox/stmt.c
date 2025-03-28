@@ -9,10 +9,11 @@ BlockStmt *block_stmt_construct(Vector *statements) {
         return block_stmt;
 }
 
-ClassStmt *class_stmt_construct(Token *name, Vector *methods) {
+ClassStmt *class_stmt_construct(Token *name, VariableExpr *superclass, Vector *methods) {
         ClassStmt *class_stmt = xmalloc(sizeof(ClassStmt));
         class_stmt->base.type = STMT_CLASS;
         class_stmt->name = name;
+        class_stmt->superclass = superclass;
         class_stmt->methods = methods;
         return class_stmt;
 }

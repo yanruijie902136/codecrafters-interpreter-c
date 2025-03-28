@@ -269,6 +269,15 @@ static Object *execute_block_stmt(const BlockStmt *block_stmt) {
 }
 
 static Object *execute_class_stmt(const ClassStmt *class_stmt) {
+        LoxClass *superclass = NULL;
+        if (class_stmt->superclass != NULL) {
+            Object *object = evaluate_variable_expr(class_stmt->superclass);
+            if (!object_is_lox_callable(object) || object_as_lox_callable(object)->type != LOX_CALLABLE_CLASS) {
+                interpret_error(class_stmt->superclass->name, "Superclass must be a class.");
+            }
+            superclass = (LoxClass *)object_as_lox_callable(object);
+        }
+
         environment_define(interpreter.environment, class_stmt->name->lexeme, NULL);
 
         Map *methods = map_construct(str_compare);
@@ -280,7 +289,7 @@ static Object *execute_class_stmt(const ClassStmt *class_stmt) {
                 map_put(methods, method->name->lexeme, function);
         }
 
-        LoxClass *class = lox_class_construct(class_stmt->name->lexeme, methods);
+        LoxClass *class = lox_class_construct(class_stmt->name->lexeme, superclass, methods);
         environment_assign(interpreter.environment, class_stmt->name, lox_callable_object_construct((LoxCallable *)class));
 
         return NULL;

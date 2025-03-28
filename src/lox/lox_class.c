@@ -7,10 +7,11 @@
 
 #include <string.h>
 
-LoxClass *lox_class_construct(const char *name, Map *methods) {
+LoxClass *lox_class_construct(const char *name, LoxClass *superclass, Map *methods) {
         LoxClass *class = xmalloc(sizeof(LoxClass));
         class->base.type = LOX_CALLABLE_CLASS;
         class->name = name;
+        class->superclass = superclass;
         class->methods = methods;
         return class;
 }

@@ -212,6 +212,13 @@ static void resolve_class_stmt(const ClassStmt *class_stmt) {
         declare(class_stmt->name);
         define(class_stmt->name);
 
+        if (class_stmt->superclass != NULL) {
+            if (strcmp(class_stmt->superclass->name->lexeme, class_stmt->name->lexeme) == 0) {
+                resolve_error(class_stmt->superclass->name, "A class can't inherit from itself.");
+            }
+            resolve_variable_expr(class_stmt->superclass);
+        }
+
         begin_scope();
         Map *scope = vector_at_back(resolver.scopes);
         map_put(scope, "this", (void *)true);

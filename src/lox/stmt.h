@@ -31,10 +31,11 @@ BlockStmt *block_stmt_construct(Vector *statements);
 typedef struct {
         Stmt base;
         Token *name;
+        VariableExpr *superclass;
         Vector *methods;
 } ClassStmt;
 
-ClassStmt *class_stmt_construct(Token *name, Vector *methods);
+ClassStmt *class_stmt_construct(Token *name, VariableExpr *superclass, Vector *methods);
 
 typedef struct {
         Stmt base;

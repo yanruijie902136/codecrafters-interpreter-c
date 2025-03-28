@@ -256,6 +256,14 @@ static Stmt *class_declaration(void) {
         }
         Token *name = previous();
 
+        VariableExpr *superclass = NULL;
+        if (match(TOKEN_LESS)) {
+            if (!match(TOKEN_IDENTIFIER)) {
+                parse_error(peek(), "Expect superclass name.");
+            }
+            superclass = variable_expr_construct(previous());
+        }
+
         if (!match(TOKEN_LEFT_BRACE)) {
                 parse_error(peek(), "Expect '{' before class body.");
         }
@@ -269,7 +277,7 @@ static Stmt *class_declaration(void) {
                 parse_error(peek(), "Expect '}' after class body.");
         }
 
-        return (Stmt *)class_stmt_construct(name, methods);
+        return (Stmt *)class_stmt_construct(name, superclass, methods);
 }
 
 static FunctionStmt *function(const char *kind) {

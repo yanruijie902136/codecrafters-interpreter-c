@@ -7,13 +7,15 @@
 #include "util/map.h"
 #include "util/vector.h"
 
-typedef struct {
+typedef struct LoxClass LoxClass;
+struct LoxClass {
         LoxCallable base;
         const char *name;
+        LoxClass *superclass;
         Map *methods;
-} LoxClass;
+};
 
-LoxClass *lox_class_construct(const char *name, Map *methods);
+LoxClass *lox_class_construct(const char *name, LoxClass *superclass, Map *methods);
 const char *lox_class_to_string(const LoxClass *class);
 size_t lox_class_arity(const LoxClass *class);
 Object *lox_class_call(LoxClass *class, Vector *arguments);
